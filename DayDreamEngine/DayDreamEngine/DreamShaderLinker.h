@@ -2,40 +2,50 @@
 #include "DreamShader.h"
 #include "DreamTexture.h"
 
-class DreamShaderLinker {
+#include <vector>
+
+class DreamShaderLinker
+{
 private:
-	void UpdateBuffer(DreamBuffer* buffer, void* bufferData = nullptr, size_t bufSize = 0);
+	void UpdateBuffer(DreamBuffer *buffer, void *bufferData = nullptr, size_t bufSize = 0);
+
 protected:
 	DreamShaderLinker();
-	std::vector<DreamShader*> linkedShaders;
+	std::vector<DreamShader *> linkedShaders;
 	ResourceBindingPoints bindingPoints;
+
 public:
 	virtual ~DreamShaderLinker() {}
-	virtual void AttachShader(DreamShader* shader) = 0;
+	virtual void AttachShader(DreamShader *shader) = 0;
 	virtual void Finalize() = 0;
-	virtual void BindShaderLink(UniformIndexStore& indexStore, std::unordered_map<std::string, DreamTexture*> texMap) = 0;
+	virtual void BindShaderLink(UniformIndexStore &indexStore, std::unordered_map<std::string, DreamTexture *> texMap) = 0;
 	virtual void UnBindShaderLink() = 0;
-	virtual void AddNewObjectInfo(UniformIndexStore& store){}
+	virtual void AddNewObjectInfo(UniformIndexStore &store) {}
 
-
-	void GenerateUniformIndexs(UniformIndexStore& indexStore) {
+	void GenerateUniformIndexs(UniformIndexStore &indexStore)
+	{
 		unsigned int shaderSize = linkedShaders.size();
 
-		for (auto& shaderInfo : linkedShaders) {
-			for (auto& uniformInfo : shaderInfo->shaderResources.uniforms) {
-				if (uniformInfo.first != "ConstantData" && uniformInfo.first != "LightData") {
+		for (auto &shaderInfo : linkedShaders)
+		{
+			for (auto &uniformInfo : shaderInfo->shaderResources.uniforms)
+			{
+				if (uniformInfo.first != "ConstantData" && uniformInfo.first != "LightData")
+				{
 					indexStore[uniformInfo.first] = uniformInfo.second.AddUniformBuffer();
-				}	
+				}
 			}
-
 		}
 	}
 
 	template <typename T>
-	inline bool UpdateUniform(const std::string& uniformName, T& data, unsigned index) {
-		for (int i = 0; i < linkedShaders.size(); i++) {
-			if (linkedShaders[i]->shaderResources.uniforms.count(uniformName)) {
-				DreamBuffer* buffer = linkedShaders[i]->shaderResources.uniforms[uniformName].GetUniformBuffer(index);
+	inline bool UpdateUniform(const std::string &uniformName, T &data, unsigned index)
+	{
+		for (int i = 0; i < linkedShaders.size(); i++)
+		{
+			if (linkedShaders[i]->shaderResources.uniforms.count(uniformName))
+			{
+				DreamBuffer *buffer = linkedShaders[i]->shaderResources.uniforms[uniformName].GetUniformBuffer(index);
 				UpdateBuffer(buffer, &data, sizeof(T));
 				return true;
 			}
@@ -44,14 +54,18 @@ public:
 	}
 
 	template <typename T>
-	inline bool UpdateUniformMemberData(const std::string& uniformName, const std::string& memberName, T& data, unsigned index) {
+	inline bool UpdateUniformMemberData(const std::string &uniformName, const std::string &memberName, T &data, unsigned index)
+	{
 
-		for (int i = 0; i < linkedShaders.size(); i++) {
-			if (linkedShaders[i]->shaderResources.uniforms.count(uniformName)) {
+		for (int i = 0; i < linkedShaders.size(); i++)
+		{
+			if (linkedShaders[i]->shaderResources.uniforms.count(uniformName))
+			{
 				UniformMembers memberInfo = linkedShaders[i]->shaderResources.uniforms[uniformName].uniformMembers;
 
-				if (memberInfo.count(uniformName)) {
-					//DreamGraphics::GetInstance()->UpdateBufferData(buffer, &data, sizeof(T));
+				if (memberInfo.count(uniformName))
+				{
+					// DreamGraphics::GetInstance()->UpdateBufferData(buffer, &data, sizeof(T));
 					return true;
 				}
 			}
@@ -61,6 +75,4 @@ public:
 	}
 
 	bool isMaterialRdy = false;
-
-	
 };

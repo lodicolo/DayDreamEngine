@@ -1,7 +1,8 @@
 #pragma once
 #include "DreamGameObject.h"
 
-class DreamCamera : public DreamGameObject{
+class DreamCamera : public DreamGameObject
+{
 
 public:
 	DreamCamera();
@@ -9,6 +10,7 @@ public:
 
 	virtual void Update() override;
 
+	bool wasClicking = false;
 	bool isClicking = false;
 	DreamMath::DreamVector2 mouseStartPos;
 	DreamMath::DreamVector2 mouseCurPos;
@@ -30,8 +32,6 @@ public:
 
 	DreamMath::DreamMatrix4X4 viewMat;
 	DreamMath::DreamMatrix4X4 projectionMat;
+
 private:
-
-
 };
-

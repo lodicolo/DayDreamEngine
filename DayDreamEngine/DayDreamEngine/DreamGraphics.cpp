@@ -7,6 +7,9 @@
 #pragma comment(lib, "spirv-cross-reflectd.lib")
 #pragma comment(lib, "spirv-cross-cored.lib")
 
+#define DREAM_OPENGL
+// #define DREAM_VULKAN
+
 #ifdef DREAM_OPENGL
 #include "DreamGLGraphics.h"
 #endif
@@ -23,16 +26,16 @@
 #include "DreamVulkanGraphics.h"
 #endif
 
+#include "DreamGLFW.h"
+#include <GLFW/glfw3.h>
 
-DreamGraphics* DreamGraphics::myGrpahics = nullptr;
+DreamGraphics *DreamGraphics::myGrpahics = nullptr;
 using namespace spirv_cross;
-
 
 DreamGraphics::DreamGraphics()
 {
-
 }
-void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, DreamShaderResources& shaderResources, bool& hasMat)
+void DreamGraphics::LoadShaderResources(spirv_cross::Compiler &spirvCompiler, DreamShaderResources &shaderResources, bool &hasMat)
 {
 	UniformMembers uniformMembers;
 	bool hasMatUniform = false;
@@ -41,7 +44,7 @@ void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, Dr
 	// The SPIR-V is now parsed, and we can perform reflection on it.
 	spirv_cross::ShaderResources resources = spirvCompiler.get_shader_resources();
 
-	for (auto& resource : resources.sampled_images)
+	for (auto &resource : resources.sampled_images)
 	{
 		std::string name = resource.name;
 
@@ -62,7 +65,7 @@ void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, Dr
 	}
 
 	// Get all sampled images in the shader.
-	for (auto& resource : resources.uniform_buffers)
+	for (auto &resource : resources.uniform_buffers)
 	{
 		std::string name = resource.name;
 
@@ -71,14 +74,14 @@ void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, Dr
 		size_t structSize = spirvCompiler.get_declared_struct_size(type);
 
 		int memberOffset = 0;
-		for (int i = 0; i < type.member_types.size(); i++) {
+		for (int i = 0; i < type.member_types.size(); i++)
+		{
 			size_t memberSize = spirvCompiler.get_declared_struct_member_size(type, i);
 			std::string memberName = spirvCompiler.get_member_name(resource.base_type_id, i);
 
 			uniformMembers[memberName] = memberOffset;
 			memberOffset += memberSize;
 		}
-
 
 		//=======Grabbing binding index of uniform
 		unsigned set = spirvCompiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
@@ -91,21 +94,26 @@ void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, Dr
 		spirvCompiler.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 
 		//=======Creating buffer for uniform
-		if (name == "ConstantData") {
+		if (name == "ConstantData")
+		{
 			hasConstDataUniform = true;
 		}
-		else if (name == "MaterialData") {
+		else if (name == "MaterialData")
+		{
 			hasMatUniform = true;
 		}
 
 		//=======Storing uniform
-		if (hasConstDataUniform) {
+		if (hasConstDataUniform)
+		{
 			shaderResources.uniforms[name] = constDataBufferInfo;
 		}
-		else if (name == "LightData") {
+		else if (name == "LightData")
+		{
 			shaderResources.uniforms[name] = lightBufferInfo;
 		}
-		else {
+		else
+		{
 			shaderResources.uniforms[name] = UniformInfo(binding, structSize, uniformMembers);
 		}
 	}
@@ -113,8 +121,9 @@ void DreamGraphics::LoadShaderResources(spirv_cross::Compiler& spirvCompiler, Dr
 	hasMat = (hasMatUniform && hasConstDataUniform);
 }
 
-void DreamGraphics::InitConstData() {
-	//matConstData = GenerateBuffer(BufferType::UniformBuffer, nullptr, 1, { sizeof(ConstantUniformData) }, { 0 }, VertexDataUsage::StreamDraw);
+void DreamGraphics::InitConstData()
+{
+	// matConstData = GenerateBuffer(BufferType::UniformBuffer, nullptr, 1, { sizeof(ConstantUniformData) }, { 0 }, VertexDataUsage::StreamDraw);
 	UniformMembers constMembers = matConstData.GetMemberData();
 	constDataBufferInfo = UniformInfo(0, sizeof(ConstantUniformData), constMembers);
 	constDataBufferInfo.AddUniformBuffer();
@@ -129,28 +138,33 @@ void DreamGraphics::InitConstData() {
 
 void DreamGraphics::Update()
 {
-	DreamCameraManager* camManager = DreamCameraManager::GetInstance();
+	DreamCameraManager *camManager = DreamCameraManager::GetInstance();
 	matConstData.viewMat = camManager->GetCurrentCam_ViewMat();
 	matConstData.projMat = camManager->GetCurrentCam_ProjMat();
 	matConstData.totalTime = DreamTimeManager::totalTime;
 
-	if (DreamInput::KeyDown(KeyCode::O)) {
+	if (glfwGetKey(window, GLFW_KEY_O))
+	// if (DreamInput::KeyDown(KeyCode::O))
+	{
 		lightData.light.direction.x += 0.01f;
 		lightData.light.direction.z -= 0.01f;
 	}
-	if (DreamInput::KeyDown(KeyCode::P)) {
+
+	if (glfwGetKey(window, GLFW_KEY_P))
+	// if (DreamInput::KeyDown(KeyCode::P))
+	{
 		lightData.light.direction.x -= 0.01f;
 		lightData.light.direction.z += 0.01f;
 	}
 
-	DreamBuffer* constDataBuffer = constDataBufferInfo.GetUniformBuffer(0);
+	DreamBuffer *constDataBuffer = constDataBufferInfo.GetUniformBuffer(0);
 	UpdateBufferData(constDataBuffer, &matConstData, sizeof(ConstantUniformData));
 
-	DreamBuffer* lightBuffer = lightBufferInfo.GetUniformBuffer(0);
+	DreamBuffer *lightBuffer = lightBufferInfo.GetUniformBuffer(0);
 	UpdateBufferData(lightBuffer, &lightData, sizeof(LightUniformData));
 }
 
-DreamGraphics * DreamGraphics::GetInstance()
+DreamGraphics *DreamGraphics::GetInstance()
 {
 	if (myGrpahics == nullptr)
 	{
@@ -173,9 +187,9 @@ DreamGraphics * DreamGraphics::GetInstance()
 	return myGrpahics;
 }
 
-DreamShaderLinker* DreamGraphics::GenerateShaderLinker()
+DreamShaderLinker *DreamGraphics::GenerateShaderLinker()
 {
-	DreamShaderLinker* link = nullptr;
+	DreamShaderLinker *link = nullptr;
 	if (link == nullptr)
 	{
 #ifdef DREAM_OPENGL
@@ -197,10 +211,11 @@ DreamShaderLinker* DreamGraphics::GenerateShaderLinker()
 	return link;
 }
 
-float DreamGraphics::GetAspectRatio() {
+float DreamGraphics::GetAspectRatio()
+{
 	if (myGrpahics)
 	{
-		return  (float)myGrpahics->width / (float)myGrpahics->height;
+		return (float)myGrpahics->width / (float)myGrpahics->height;
 	}
 	return 1.0f;
 }

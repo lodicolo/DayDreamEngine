@@ -1,73 +1,81 @@
 #pragma once
 #include "DreamGraphics.h"
-#include <SPIRV/spirv_cross.hpp>
+#include <spirv_cross/spirv_cross.hpp>
 #pragma comment(lib, "spirv-cross-reflectd.lib")
 #pragma comment(lib, "spirv-cross-cored.lib")
-#define VK_USE_PLATFORM_WIN32_KHR
+// #define VK_USE_PLATFORM_WIN32_KHR
+
+#define VK_USE_PLATFORM_XLIB_KHR
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#define GLFW_EXPOSE_NATIVE_WIN32
+// #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
-
 
 #include <optional>
 
 class DreamVulkanGraphics;
 
-class DreamVulkanShaderLinker : public DreamShaderLinker {
+class DreamVulkanShaderLinker : public DreamShaderLinker
+{
 protected:
 	DreamVulkanShaderLinker();
+
 public:
 	~DreamVulkanShaderLinker() override;
-	void AttachShader(DreamShader* shader) override;
+	void AttachShader(DreamShader *shader) override;
 	void Finalize() override;
-	void BindShaderLink(UniformIndexStore& indexStore, std::unordered_map<std::string, DreamTexture*> texMap) override;
+	void BindShaderLink(UniformIndexStore &indexStore, std::unordered_map<std::string, DreamTexture *> texMap) override;
 	void UnBindShaderLink() override;
-	void AddNewObjectInfo(UniformIndexStore& store) override;
+	void AddNewObjectInfo(UniformIndexStore &store) override;
 
 private:
-	DreamVulkanGraphics* vulkanGraphics = nullptr;
+	DreamVulkanGraphics *vulkanGraphics = nullptr;
 	std::vector<VkPipelineShaderStageCreateInfo> shadersStageInfo;
 	std::vector<VkDescriptorSetLayoutBinding> descriptorBindings;
-	std::vector <VkDescriptorSet> pipelineDescSet;
+	std::vector<VkDescriptorSet> pipelineDescSet;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	VkDescriptorSetLayout descriptorSetLayout;
-	DreamPointer* vertexInputLayout;
+	DreamPointer *vertexInputLayout;
 	friend class DreamGraphics;
 };
 
-class DreamVulkanVertexArray : public DreamVertexArray {
+class DreamVulkanVertexArray : public DreamVertexArray
+{
 public:
-	DreamVulkanVertexArray(DreamBuffer* vert, DreamBuffer* ind = nullptr);
+	DreamVulkanVertexArray(DreamBuffer *vert, DreamBuffer *ind = nullptr);
 	~DreamVulkanVertexArray();
 
 	void Bind() override;
 	void UnBind() override;
 
-	DreamBuffer* VAO;
+	DreamBuffer *VAO;
 };
 
-struct VulkanBufferContainer {
+struct VulkanBufferContainer
+{
 	VkBuffer buffer;
 	VkDeviceMemory bufferMemory;
 
-	VulkanBufferContainer(VkBuffer buf, VkDeviceMemory bufMem) {
+	VulkanBufferContainer(VkBuffer buf, VkDeviceMemory bufMem)
+	{
 		buffer = buf;
 		bufferMemory = bufMem;
 	}
 };
 
-struct VulkanImageContainer {
-	DreamBuffer* imageBuffer;
+struct VulkanImageContainer
+{
+	DreamBuffer *imageBuffer;
 	VkDeviceMemory imageBufferMemory;
 	VkImage image;
 	VkImageView imageView;
 	VkSampler samplerRef;
 
-	VulkanImageContainer(DreamBuffer* buf, VkDeviceMemory bufMem, VkImage img, VkImageView imgView, VkSampler ref) {
+	VulkanImageContainer(DreamBuffer *buf, VkDeviceMemory bufMem, VkImage img, VkImageView imgView, VkSampler ref)
+	{
 		imageBuffer = buf;
 		imageBufferMemory = bufMem;
 		image = img;
@@ -82,7 +90,7 @@ public:
 	DreamVulkanGraphics();
 	~DreamVulkanGraphics();
 
-	long InitWindow(int w, int h, const char* title) override;
+	long InitWindow(int w, int h, const char *title) override;
 	long InitGraphics() override;
 	void SetViewPort(int posX, int posY, int w, int h) override;
 	bool CheckWindowClose() override;
@@ -90,64 +98,64 @@ public:
 	void ClearScreen() override;
 	void SwapBuffers() override;
 	void CheckInputs() override;
-	DreamVertexArray* GenerateVertexArray(DreamBuffer* vert, DreamBuffer* ind = nullptr);
-	DreamBuffer* GenerateBuffer(BufferType type, void* bufferData = nullptr, size_t numOfElements = 0, std::vector<size_t> strides = { 0 }, std::vector<size_t> offests = { 0 }, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
-	DreamBuffer* GenerateBuffer(BufferType type, size_t bufferSize = 0) override;
-	DreamPointer* GenerateTexture(unsigned char* pixelBuffer, int texWidth, int texHeight) override;
-	void UpdateBufferData(DreamBuffer* buffer, void* bufferData = nullptr, size_t bufSize = 0, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
-	void BindBuffer(BufferType type, DreamBuffer* buffer) override;
-	void BindTexture(DreamTexture* texture, int bindingPoint) override;
+	DreamVertexArray *GenerateVertexArray(DreamBuffer *vert, DreamBuffer *ind = nullptr);
+	DreamBuffer *GenerateBuffer(BufferType type, void *bufferData = nullptr, size_t numOfElements = 0, std::vector<size_t> strides = {0}, std::vector<size_t> offests = {0}, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
+	DreamBuffer *GenerateBuffer(BufferType type, size_t bufferSize = 0) override;
+	DreamPointer *GenerateTexture(unsigned char *pixelBuffer, int texWidth, int texHeight) override;
+	void UpdateBufferData(DreamBuffer *buffer, void *bufferData = nullptr, size_t bufSize = 0, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
+	void BindBuffer(BufferType type, DreamBuffer *buffer) override;
+	void BindTexture(DreamTexture *texture, int bindingPoint) override;
 	void BeginVertexLayout() override;
 	void AddVertexLayoutData(std::string dataName, int size, unsigned int location, bool shouldNormalize, unsigned int sizeOf) override;
-	DreamPointer* FinalizeVertexLayout() override;
+	DreamPointer *FinalizeVertexLayout() override;
 	void UnBindBuffer(BufferType type) override;
-	DreamShader* LoadShader(const wchar_t* file, ShaderType shaderType) override;
-	void ReleaseShader(DreamShader* shader) override;
+	DreamShader *LoadShader(const wchar_t *file, ShaderType shaderType) override;
+	void ReleaseShader(DreamShader *shader) override;
 	void DrawWithIndex(size_t size) override;
 	void DrawWithVertex(size_t size) override;
 	void Draw() override;
 
 	void TerminateGraphics() override;
 	void DestroyWindow() override;
-	void DestroyBuffer(DreamBuffer* buffer) override;
+	void DestroyBuffer(DreamBuffer *buffer) override;
 
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-	static void OnWindowResize(GLFWwindow* window, int width, int height);
+	static void OnWindowResize(GLFWwindow *window, int width, int height);
 
 	void createInstance();
 	bool checkValidationLayerSupport();
-	std::vector<const char*> getRequiredExtensions();
-	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	std::vector<const char *> getRequiredExtensions();
+	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger);
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator);
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 	void setupDebugMessenger();
 	void createSurface();
 	void pickPhysicalDevice();
 	void createLogicalDevice();
 	void createSwapChain();
 
-	struct SwapChainSupportDetails {
+	struct SwapChainSupportDetails
+	{
 		VkSurfaceCapabilitiesKHR capabilities;
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-	const std::vector<const char*> deviceExtensions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
+	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-
-	struct QueueFamilyIndices {
+	struct QueueFamilyIndices
+	{
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
 
-		bool isComplete() {
+		bool isComplete()
+		{
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
@@ -156,7 +164,7 @@ public:
 	void createImageViews();
 	void createRenderPass();
 
-	VkPipeline CreateGraphicPipeLine(std::vector<VkPipelineShaderStageCreateInfo>& shadersStageInfo, VkPipelineLayout& layout, std::vector<VkDescriptorSet>& pipelineDescSet, std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings, VkDescriptorSetLayout& descriptorSetLayout, DreamPointer* vertexLayoutPtr);
+	VkPipeline CreateGraphicPipeLine(std::vector<VkPipelineShaderStageCreateInfo> &shadersStageInfo, VkPipelineLayout &layout, std::vector<VkDescriptorSet> &pipelineDescSet, std::vector<VkDescriptorSetLayoutBinding> &descriptorBindings, VkDescriptorSetLayout &descriptorSetLayout, DreamPointer *vertexLayoutPtr);
 
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	void createFramebuffers();
@@ -172,7 +180,7 @@ public:
 	void cleanupSwapChain();
 
 	void createDescriptorPool();
-	void updateDescriptorSet(VkWriteDescriptorSet& descSet);
+	void updateDescriptorSet(VkWriteDescriptorSet &descSet);
 	void BindDescriptorSet(VkDescriptorSet descSet, VkPipelineLayout layout);
 
 	VkCommandBuffer beginSingleTimeCommands();
@@ -186,15 +194,14 @@ public:
 
 	void createTextureSampler();
 
-	int addNewDescriptorSets(std::vector<VkDescriptorSet>& pipelineDescSet, VkDescriptorSetLayout descLayout);
+	int addNewDescriptorSets(std::vector<VkDescriptorSet> &pipelineDescSet, VkDescriptorSetLayout descLayout);
 
 private:
 	uint32_t imageIndex;
 	bool framebufferResized = false;
 
-	const std::vector<const char*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-	};
+	const std::vector<const char *> validationLayers = {
+		"VK_LAYER_KHRONOS_validation"};
 
 	std::vector<VkVertexInputAttributeDescription> attributeDesc;
 #ifdef NDEBUG
@@ -232,7 +239,4 @@ private:
 	std::vector<VkDescriptorSetLayout> descSetLayouts;
 
 	VkSampler textureSampler;
-
-	GLFWwindow* window = nullptr;
 };
-

@@ -1,31 +1,34 @@
 #include "DreamVulkanGraphics.h"
 
 #include <set>
-#include <cstdint> // Necessary for uint32_t
-#include <limits> // Necessary for std::numeric_limits
+#include <cstdint>	 // Necessary for uint32_t
+#include <limits>	 // Necessary for std::numeric_limits
 #include <algorithm> // Necessary for std::clamp
 #include <DreamFileIO.h>
 #include <iostream>
 #include "DreamMesh.h"
+#include "DreamGLFW.h"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	void* pUserData) {
+	const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+	void *pUserData)
+{
 
 	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
 }
 
-void DreamVulkanGraphics::OnWindowResize(GLFWwindow* window, int width, int height) {
-	auto app = reinterpret_cast<DreamVulkanGraphics*>(glfwGetWindowUserPointer(window));
+void DreamVulkanGraphics::OnWindowResize(GLFWwindow *window, int width, int height)
+{
+	auto app = reinterpret_cast<DreamVulkanGraphics *>(glfwGetWindowUserPointer(window));
 	app->framebufferResized = true;
 
 	GetInstance()->width = width;
 	GetInstance()->height = height;
-	//glViewport(0, 0, width, height);
+	// glViewport(0, 0, width, height);
 }
 
 DreamVulkanGraphics::DreamVulkanGraphics() : DreamGraphics()
@@ -33,25 +36,24 @@ DreamVulkanGraphics::DreamVulkanGraphics() : DreamGraphics()
 	MAX_FRAMES_IN_FLIGHT = 2;
 }
 
-
 DreamVulkanGraphics::~DreamVulkanGraphics()
 {
 }
 
-long DreamVulkanGraphics::InitWindow(int w, int h, const char* title)
+long DreamVulkanGraphics::InitWindow(int w, int h, const char *title)
 {
 	// Init
 	width = w;
 	height = h;
 	glfwInit();
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(width, height, title, NULL, NULL);
 	glfwSetWindowUserPointer(window, this);
-	//glfwCreateWindowSurface(instance, window, nullptr, &surface);
+	// glfwCreateWindowSurface(instance, window, nullptr, &surface);
 
 	if (window == NULL)
 	{
@@ -63,7 +65,8 @@ long DreamVulkanGraphics::InitWindow(int w, int h, const char* title)
 	return 0;
 }
 
-bool DreamVulkanGraphics::isDeviceSuitable(VkPhysicalDevice device) {
+bool DreamVulkanGraphics::isDeviceSuitable(VkPhysicalDevice device)
+{
 
 	/*VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -71,13 +74,13 @@ bool DreamVulkanGraphics::isDeviceSuitable(VkPhysicalDevice device) {
 	VkPhysicalDeviceFeatures deviceFeatures;
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);*/
 
-
 	QueueFamilyIndices indices = findQueueFamilies(device);
 
 	bool extensionsSupported = checkDeviceExtensionSupport(device);
 
 	bool swapChainAdequate = false;
-	if (extensionsSupported) {
+	if (extensionsSupported)
+	{
 		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
 		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
@@ -85,7 +88,8 @@ bool DreamVulkanGraphics::isDeviceSuitable(VkPhysicalDevice device) {
 	return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
-bool DreamVulkanGraphics::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool DreamVulkanGraphics::checkDeviceExtensionSupport(VkPhysicalDevice device)
+{
 	uint32_t extensionCount;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -94,14 +98,16 @@ bool DreamVulkanGraphics::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 
 	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
-	for (const auto& extension : availableExtensions) {
+	for (const auto &extension : availableExtensions)
+	{
 		requiredExtensions.erase(extension.extensionName);
 	}
 
 	return requiredExtensions.empty();
 }
 
-DreamVulkanGraphics::QueueFamilyIndices DreamVulkanGraphics::findQueueFamilies(VkPhysicalDevice device) {
+DreamVulkanGraphics::QueueFamilyIndices DreamVulkanGraphics::findQueueFamilies(VkPhysicalDevice device)
+{
 	QueueFamilyIndices indices;
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -110,19 +116,23 @@ DreamVulkanGraphics::QueueFamilyIndices DreamVulkanGraphics::findQueueFamilies(V
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
 	int i = 0;
-	for (const auto& queueFamily : queueFamilies) {
+	for (const auto &queueFamily : queueFamilies)
+	{
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 
-		if (presentSupport) {
+		if (presentSupport)
+		{
 			indices.presentFamily = i;
 		}
 
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
 			indices.graphicsFamily = i;
 		}
 
-		if (indices.isComplete()) {
+		if (indices.isComplete())
+		{
 			break;
 		}
 
@@ -132,7 +142,8 @@ DreamVulkanGraphics::QueueFamilyIndices DreamVulkanGraphics::findQueueFamilies(V
 	return indices;
 }
 
-DreamVulkanGraphics::SwapChainSupportDetails DreamVulkanGraphics::querySwapChainSupport(VkPhysicalDevice device) {
+DreamVulkanGraphics::SwapChainSupportDetails DreamVulkanGraphics::querySwapChainSupport(VkPhysicalDevice device)
+{
 	SwapChainSupportDetails details;
 
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -140,7 +151,8 @@ DreamVulkanGraphics::SwapChainSupportDetails DreamVulkanGraphics::querySwapChain
 	uint32_t formatCount;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
-	if (formatCount != 0) {
+	if (formatCount != 0)
+	{
 		details.formats.resize(formatCount);
 		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
 	}
@@ -148,7 +160,8 @@ DreamVulkanGraphics::SwapChainSupportDetails DreamVulkanGraphics::querySwapChain
 	uint32_t presentModeCount;
 	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
 
-	if (presentModeCount != 0) {
+	if (presentModeCount != 0)
+	{
 		details.presentModes.resize(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
 	}
@@ -156,9 +169,12 @@ DreamVulkanGraphics::SwapChainSupportDetails DreamVulkanGraphics::querySwapChain
 	return details;
 }
 
-VkSurfaceFormatKHR DreamVulkanGraphics::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-	for (const auto& availableFormat : availableFormats) {
-		if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+VkSurfaceFormatKHR DreamVulkanGraphics::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
+{
+	for (const auto &availableFormat : availableFormats)
+	{
+		if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
 			return availableFormat;
 		}
 	}
@@ -166,9 +182,12 @@ VkSurfaceFormatKHR DreamVulkanGraphics::chooseSwapSurfaceFormat(const std::vecto
 	return availableFormats[0];
 }
 
-VkPresentModeKHR DreamVulkanGraphics::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-	for (const auto& availablePresentMode : availablePresentModes) {
-		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+VkPresentModeKHR DreamVulkanGraphics::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes)
+{
+	for (const auto &availablePresentMode : availablePresentModes)
+	{
+		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
 			return availablePresentMode;
 		}
 	}
@@ -176,18 +195,20 @@ VkPresentModeKHR DreamVulkanGraphics::chooseSwapPresentMode(const std::vector<Vk
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D DreamVulkanGraphics::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-	if (capabilities.currentExtent.width != -1) {
+VkExtent2D DreamVulkanGraphics::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
+{
+	if (capabilities.currentExtent.width != -1)
+	{
 		return capabilities.currentExtent;
 	}
-	else {
+	else
+	{
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 
 		VkExtent2D actualExtent = {
 			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height)
-		};
+			static_cast<uint32_t>(height)};
 
 		actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -196,10 +217,10 @@ VkExtent2D DreamVulkanGraphics::chooseSwapExtent(const VkSurfaceCapabilitiesKHR&
 	}
 }
 
-
 void DreamVulkanGraphics::createInstance()
 {
-	if (enableValidationLayers && !checkValidationLayerSupport()) {
+	if (enableValidationLayers && !checkValidationLayerSupport())
+	{
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
@@ -216,49 +237,55 @@ void DreamVulkanGraphics::createInstance()
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-
-
 	auto extensions = getRequiredExtensions();
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
 
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 
 		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
 	}
-	else {
+	else
+	{
 		createInfo.enabledLayerCount = 0;
 
 		createInfo.pNext = nullptr;
 	}
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create instance!");
 		return;
 	}
 }
-bool DreamVulkanGraphics::checkValidationLayerSupport() {
+bool DreamVulkanGraphics::checkValidationLayerSupport()
+{
 	uint32_t layerCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
 	std::vector<VkLayerProperties> availableLayers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	for (const char* layerName : validationLayers) {
+	for (const char *layerName : validationLayers)
+	{
 		bool layerFound = false;
 
-		for (const auto& layerProperties : availableLayers) {
-			if (strcmp(layerName, layerProperties.layerName) == 0) {
+		for (const auto &layerProperties : availableLayers)
+		{
+			if (strcmp(layerName, layerProperties.layerName) == 0)
+			{
 				layerFound = true;
 				break;
 			}
 		}
 
-		if (!layerFound) {
+		if (!layerFound)
+		{
 			return false;
 		}
 	}
@@ -266,21 +293,24 @@ bool DreamVulkanGraphics::checkValidationLayerSupport() {
 	return true;
 }
 
-std::vector<const char*> DreamVulkanGraphics::getRequiredExtensions() {
+std::vector<const char *> DreamVulkanGraphics::getRequiredExtensions()
+{
 	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
+	const char **glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
 
 	return extensions;
 }
 
-void DreamVulkanGraphics::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+void DreamVulkanGraphics::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+{
 	createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -288,30 +318,38 @@ void DreamVulkanGraphics::populateDebugMessengerCreateInfo(VkDebugUtilsMessenger
 	createInfo.pfnUserCallback = debugCallback;
 }
 
-void DreamVulkanGraphics::setupDebugMessenger() {
-	if (!enableValidationLayers) return;
+void DreamVulkanGraphics::setupDebugMessenger()
+{
+	if (!enableValidationLayers)
+		return;
 
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
 
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }
 
-VkResult DreamVulkanGraphics::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+VkResult DreamVulkanGraphics::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger)
+{
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-	if (func != nullptr) {
+	if (func != nullptr)
+	{
 		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 	}
-	else {
+	else
+	{
 		return VK_ERROR_EXTENSION_NOT_PRESENT;
 	}
 }
 
-void DreamVulkanGraphics::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+void DreamVulkanGraphics::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator)
+{
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-	if (func != nullptr) {
+	if (func != nullptr)
+	{
 		func(instance, debugMessenger, pAllocator);
 	}
 }
@@ -319,7 +357,8 @@ void DreamVulkanGraphics::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkD
 void DreamVulkanGraphics::createSurface()
 {
 	VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-	if (result != VK_SUCCESS) {
+	if (result != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create window surface!");
 	}
 }
@@ -330,7 +369,8 @@ void DreamVulkanGraphics::pickPhysicalDevice()
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
-	if (deviceCount == 0) {
+	if (deviceCount == 0)
+	{
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 		return;
 	}
@@ -338,14 +378,17 @@ void DreamVulkanGraphics::pickPhysicalDevice()
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-	for (const auto& device : devices) {
-		if (isDeviceSuitable(device)) {
+	for (const auto &device : devices)
+	{
+		if (isDeviceSuitable(device))
+		{
 			physicalDevice = device;
 			break;
 		}
 	}
 
-	if (physicalDevice == VK_NULL_HANDLE) {
+	if (physicalDevice == VK_NULL_HANDLE)
+	{
 		throw std::runtime_error("failed to find a suitable GPU!");
 		return;
 	}
@@ -357,10 +400,11 @@ void DreamVulkanGraphics::createLogicalDevice()
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
 	float queuePriority = 1.0f;
-	for (uint32_t queueFamily : uniqueQueueFamilies) {
+	for (uint32_t queueFamily : uniqueQueueFamilies)
+	{
 		VkDeviceQueueCreateInfo queueCreateInfo{};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -369,9 +413,7 @@ void DreamVulkanGraphics::createLogicalDevice()
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
-
 	VkPhysicalDeviceFeatures deviceFeatures{};
-
 
 	VkDeviceCreateInfo deviceCreateInfo{};
 	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -381,17 +423,16 @@ void DreamVulkanGraphics::createLogicalDevice()
 	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-
-
-	//if (enableValidationLayers) {
+	// if (enableValidationLayers) {
 	//	deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 	//	deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-	//}
-	//else {
+	// }
+	// else {
 	//	deviceCreateInfo.enabledLayerCount = 0;
-	//}
+	// }
 
-	if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS) {
+	if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create logical device!");
 		return;
 	}
@@ -409,7 +450,8 @@ void DreamVulkanGraphics::createSwapChain()
 	VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
 	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+	{
 		imageCount = swapChainSupport.capabilities.maxImageCount;
 	}
 
@@ -424,16 +466,18 @@ void DreamVulkanGraphics::createSwapChain()
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
-	if (indices.graphicsFamily != indices.presentFamily) {
+	if (indices.graphicsFamily != indices.presentFamily)
+	{
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		createInfo.queueFamilyIndexCount = 2;
 		createInfo.pQueueFamilyIndices = queueFamilyIndices;
 	}
-	else {
+	else
+	{
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.queueFamilyIndexCount = 0; // Optional
+		createInfo.queueFamilyIndexCount = 0;	  // Optional
 		createInfo.pQueueFamilyIndices = nullptr; // Optional
 	}
 
@@ -443,7 +487,8 @@ void DreamVulkanGraphics::createSwapChain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+	if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create swap chain!");
 	}
 
@@ -455,10 +500,12 @@ void DreamVulkanGraphics::createSwapChain()
 	swapChainExtent = extent;
 }
 
-void DreamVulkanGraphics::recreateSwapChain() {
+void DreamVulkanGraphics::recreateSwapChain()
+{
 	int width = 0, height = 0;
 	glfwGetFramebufferSize(window, &width, &height);
-	while (width == 0 || height == 0) {
+	while (width == 0 || height == 0)
+	{
 		glfwGetFramebufferSize(window, &width, &height);
 		glfwWaitEvents();
 	}
@@ -472,14 +519,16 @@ void DreamVulkanGraphics::recreateSwapChain() {
 	createFramebuffers();
 }
 
-void DreamVulkanGraphics::createImageViews() {
+void DreamVulkanGraphics::createImageViews()
+{
 
-	//If you were working on a stereographic 3D application, then you would create a swap chain with multiple layers.
-	//You could then create multiple image views for each image representing the views for the leftand right eyes by 
-	// accessing different layers.
+	// If you were working on a stereographic 3D application, then you would create a swap chain with multiple layers.
+	// You could then create multiple image views for each image representing the views for the leftand right eyes by
+	//  accessing different layers.
 	swapChainImageViews.resize(swapChainImages.size());
 
-	for (size_t i = 0; i < swapChainImages.size(); i++) {
+	for (size_t i = 0; i < swapChainImages.size(); i++)
+	{
 		VkImageViewCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = swapChainImages[i];
@@ -495,13 +544,15 @@ void DreamVulkanGraphics::createImageViews() {
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+		if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to create image views!");
 		}
 	}
 }
 
-void DreamVulkanGraphics::createRenderPass() {
+void DreamVulkanGraphics::createRenderPass()
+{
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapChainImageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -538,32 +589,34 @@ void DreamVulkanGraphics::createRenderPass() {
 	renderPassInfo.dependencyCount = 1;
 	renderPassInfo.pDependencies = &dependency;
 
-	if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+	if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create render pass!");
 	}
 }
-VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShaderStageCreateInfo>& shadersStageInfo, VkPipelineLayout& layout, std::vector<VkDescriptorSet>& pipelineDescSet, std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings, VkDescriptorSetLayout& descriptorSetLayout, DreamPointer* vertexLayoutPtr) {
-	//VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-	//vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	//vertexInputInfo.vertexBindingDescriptionCount = 0;
-	//vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-	//vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	//vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShaderStageCreateInfo> &shadersStageInfo, VkPipelineLayout &layout, std::vector<VkDescriptorSet> &pipelineDescSet, std::vector<VkDescriptorSetLayoutBinding> &descriptorBindings, VkDescriptorSetLayout &descriptorSetLayout, DreamPointer *vertexLayoutPtr)
+{
+	// VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+	// vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	// vertexInputInfo.vertexBindingDescriptionCount = 0;
+	// vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+	// vertexInputInfo.vertexAttributeDescriptionCount = 0;
+	// vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
 
 	uint32_t descriptorSize = (uint32_t)descriptorBindings.size();
-	if (descriptorSize > 0) {
+	if (descriptorSize > 0)
+	{
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = descriptorSize;
 		layoutInfo.pBindings = &descriptorBindings[0];
-		//layoutInfo.flags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT; VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT
+		// layoutInfo.flags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT; VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT
 
-
-		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to create descriptor set layout!");
 		}
 	}
-
 
 	// If we are gonna layout vertex input data
 	VkVertexInputBindingDescription bindingDescription{};
@@ -571,7 +624,7 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	bindingDescription.stride = sizeof(DreamVertex);
 	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	//std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {
+	// std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {
 	//	{0,//location;
 	//	0,//binding;
 	//	VK_FORMAT_R32G32B32_SFLOAT,//format;
@@ -587,9 +640,9 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	//	VK_FORMAT_R32G32_SFLOAT,//format;
 	//	offsetof(DreamVertex, uv)//offset;
 	//	}
-	//};
+	// };
 
-	VkVertexInputAttributeDescription*  vertLayout = (VkVertexInputAttributeDescription*)vertexLayoutPtr->GetStoredPointer();
+	VkVertexInputAttributeDescription *vertLayout = (VkVertexInputAttributeDescription *)vertexLayoutPtr->GetStoredPointer();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -603,11 +656,10 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-
 	std::vector<VkDynamicState> dynamicStates = {
-	VK_DYNAMIC_STATE_VIEWPORT,
-	VK_DYNAMIC_STATE_SCISSOR,
-	VK_DYNAMIC_STATE_LINE_WIDTH,
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR,
+		VK_DYNAMIC_STATE_LINE_WIDTH,
 	};
 
 	VkPipelineDynamicStateCreateInfo dynamicState{};
@@ -621,48 +673,48 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	viewportState.scissorCount = 1;
 
 	// If we werent using dynamic state
-	//VkPipelineViewportStateCreateInfo viewportState{};
-	//viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	//viewportState.viewportCount = 1;
-	//viewportState.pViewports = &viewport;
-	//viewportState.scissorCount = 1;
-	//viewportState.pScissors = &scissor;
+	// VkPipelineViewportStateCreateInfo viewportState{};
+	// viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	// viewportState.viewportCount = 1;
+	// viewportState.pViewports = &viewport;
+	// viewportState.scissorCount = 1;
+	// viewportState.pScissors = &scissor;
 
 	VkPipelineRasterizationStateCreateInfo rasterizer{};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; //VK_FRONT_FACE_COUNTER_CLOCKWISE
-	//rasterizer.lineWidth = 1.0f;
-	//rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; // VK_FRONT_FACE_COUNTER_CLOCKWISE
+	// rasterizer.lineWidth = 1.0f;
+	// rasterizer.rasterizerDiscardEnable = VK_FALSE;
 
 	VkPipelineMultisampleStateCreateInfo multisampling{};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
 	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multisampling.minSampleShading = 1.0f; // Optional
-	multisampling.pSampleMask = nullptr; // Optional
+	multisampling.minSampleShading = 1.0f;			// Optional
+	multisampling.pSampleMask = nullptr;			// Optional
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
-	multisampling.alphaToOneEnable = VK_FALSE; // Optional
+	multisampling.alphaToOneEnable = VK_FALSE;		// Optional
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachment.blendEnable = VK_FALSE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;	 // Optional
 	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;			 // Optional
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;	 // Optional
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;			 // Optional
 	// If you want to blend colors
-	//colorBlendAttachment.blendEnable = VK_TRUE;
-	//colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	//colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	//colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	//colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	//colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	//colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	// colorBlendAttachment.blendEnable = VK_TRUE;
+	// colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	// colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	// colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	// colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	// colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	// colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
 	VkPipelineColorBlendStateCreateInfo colorBlending{};
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -675,18 +727,19 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
 
-	//When i need to set uniform values in shaders 
+	// When i need to set uniform values in shaders
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1; // Optional
+	pipelineLayoutInfo.setLayoutCount = 1;				   // Optional
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
-	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = 0;		   // Optional
+	pipelineLayoutInfo.pPushConstantRanges = nullptr;	   // Optional
 
-	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &layout) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
-	//vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	// vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -704,10 +757,11 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	pipelineInfo.renderPass = renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
-	pipelineInfo.basePipelineIndex = -1; // Optional
+	pipelineInfo.basePipelineIndex = -1;			  // Optional
 
 	VkPipeline graphicsPipeline{};
-	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
 
@@ -716,11 +770,11 @@ VkPipeline DreamVulkanGraphics::CreateGraphicPipeLine(std::vector<VkPipelineShad
 	return graphicsPipeline;
 }
 
-int DreamVulkanGraphics::addNewDescriptorSets(std::vector<VkDescriptorSet>& pipelineDescSet, VkDescriptorSetLayout descLayout) {
+int DreamVulkanGraphics::addNewDescriptorSets(std::vector<VkDescriptorSet> &pipelineDescSet, VkDescriptorSetLayout descLayout)
+{
 	int allocationIndex = pipelineDescSet.size();
 	pipelineDescSet.resize(MAX_FRAMES_IN_FLIGHT + allocationIndex);
 	std::vector<VkDescriptorSetLayout> descLayouts(MAX_FRAMES_IN_FLIGHT, descLayout);
-
 
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -729,20 +783,22 @@ int DreamVulkanGraphics::addNewDescriptorSets(std::vector<VkDescriptorSet>& pipe
 	allocInfo.pSetLayouts = descLayouts.data();
 
 	VkResult result = vkAllocateDescriptorSets(device, &allocInfo, &pipelineDescSet[allocationIndex]);
-	if (result != VK_SUCCESS) {
+	if (result != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to allocate descriptor sets!");
 	}
 
 	return allocationIndex / MAX_FRAMES_IN_FLIGHT;
 }
 
-void DreamVulkanGraphics::createFramebuffers() {
+void DreamVulkanGraphics::createFramebuffers()
+{
 	swapChainFramebuffers.resize(swapChainImageViews.size());
 
-	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+	for (size_t i = 0; i < swapChainImageViews.size(); i++)
+	{
 		VkImageView attachments[] = {
-			swapChainImageViews[i]
-		};
+			swapChainImageViews[i]};
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -753,12 +809,14 @@ void DreamVulkanGraphics::createFramebuffers() {
 		framebufferInfo.height = swapChainExtent.height;
 		framebufferInfo.layers = 1;
 
-		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to create framebuffer!");
 		}
 	}
 }
-void DreamVulkanGraphics::createCommandPool() {
+void DreamVulkanGraphics::createCommandPool()
+{
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
 	VkCommandPoolCreateInfo poolInfo{};
@@ -766,11 +824,13 @@ void DreamVulkanGraphics::createCommandPool() {
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-	if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+	if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create command pool!");
 	}
 }
-void DreamVulkanGraphics::createCommandBuffer() {
+void DreamVulkanGraphics::createCommandBuffer()
+{
 	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 	VkCommandBufferAllocateInfo allocInfo{};
@@ -779,11 +839,13 @@ void DreamVulkanGraphics::createCommandBuffer() {
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 }
-void DreamVulkanGraphics::createSyncObjects() {
+void DreamVulkanGraphics::createSyncObjects()
+{
 	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -795,16 +857,19 @@ void DreamVulkanGraphics::createSyncObjects() {
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
 		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
 			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+		{
 
 			throw std::runtime_error("failed to create synchronization objects for a frame!");
 		}
 	}
 }
-void DreamVulkanGraphics::createDescriptorPool() {
+void DreamVulkanGraphics::createDescriptorPool()
+{
 	VkDescriptorPoolSize poolSize[2]{};
 	poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSize[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -817,18 +882,21 @@ void DreamVulkanGraphics::createDescriptorPool() {
 	poolInfo.pPoolSizes = &poolSize[0];
 	poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 10; // TODO: hard corded this value since we making 2 graphics pipelines
 
-	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+	if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create descriptor pool!");
 	}
 }
 
-void DreamVulkanGraphics::recordCommandBuffer(VkCommandBuffer commandBuffer,  size_t imageIndex) {
+void DreamVulkanGraphics::recordCommandBuffer(VkCommandBuffer commandBuffer, size_t imageIndex)
+{
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = 0; // Optional
+	beginInfo.flags = 0;				  // Optional
 	beginInfo.pInheritanceInfo = nullptr; // Optional
 
-	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to begin recording command buffer!");
 	}
 
@@ -836,40 +904,46 @@ void DreamVulkanGraphics::recordCommandBuffer(VkCommandBuffer commandBuffer,  si
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassInfo.renderPass = renderPass;
 	renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
-	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.offset = {0, 0};
 	renderPassInfo.renderArea.extent = swapChainExtent;
-	VkClearValue clearColor = { {{clearScreenColor.x, clearScreenColor.y, clearScreenColor.z, clearScreenColor.w}} };
+	VkClearValue clearColor = {{{clearScreenColor.x, clearScreenColor.y, clearScreenColor.z, clearScreenColor.w}}};
 	renderPassInfo.clearValueCount = 1;
 	renderPassInfo.pClearValues = &clearColor;
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
 }
-void DreamVulkanGraphics::BindGraphicsPipeline(VkPipeline pipeline) {
+void DreamVulkanGraphics::BindGraphicsPipeline(VkPipeline pipeline)
+{
 	vkCmdBindPipeline(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
-void DreamVulkanGraphics::DestroyGraphicsPipeline(VkPipeline pipe, VkPipelineLayout layout) {
+void DreamVulkanGraphics::DestroyGraphicsPipeline(VkPipeline pipe, VkPipelineLayout layout)
+{
 
 	vkDeviceWaitIdle(device);
 
-	if (pipe) {
+	if (pipe)
+	{
 		vkDestroyPipeline(device, pipe, nullptr);
 	}
 
-	if (layout) {
+	if (layout)
+	{
 		vkDestroyPipelineLayout(device, layout, nullptr);
 	}
 }
 
-void DreamVulkanGraphics::updateDescriptorSet(VkWriteDescriptorSet& descSet) {
+void DreamVulkanGraphics::updateDescriptorSet(VkWriteDescriptorSet &descSet)
+{
 	vkUpdateDescriptorSets(device, 1, &descSet, 0, nullptr);
 }
 
-void DreamVulkanGraphics::BindDescriptorSet(VkDescriptorSet descSet, VkPipelineLayout layout) {
+void DreamVulkanGraphics::BindDescriptorSet(VkDescriptorSet descSet, VkPipelineLayout layout)
+{
 	vkCmdBindDescriptorSets(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descSet, 0, nullptr);
 }
 
-VkCommandBuffer DreamVulkanGraphics::beginSingleTimeCommands() {
+VkCommandBuffer DreamVulkanGraphics::beginSingleTimeCommands()
+{
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -888,7 +962,8 @@ VkCommandBuffer DreamVulkanGraphics::beginSingleTimeCommands() {
 	return commandBuffer;
 }
 
-void DreamVulkanGraphics::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void DreamVulkanGraphics::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo{};
@@ -902,7 +977,8 @@ void DreamVulkanGraphics::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-void DreamVulkanGraphics::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+void DreamVulkanGraphics::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 	VkBufferCopy copyRegion{};
@@ -912,7 +988,8 @@ void DreamVulkanGraphics::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkD
 	endSingleTimeCommands(commandBuffer);
 }
 
-void DreamVulkanGraphics::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void DreamVulkanGraphics::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier{};
@@ -933,21 +1010,24 @@ void DreamVulkanGraphics::transitionImageLayout(VkImage image, VkFormat format, 
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
 
-	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
 		barrier.srcAccessMask = 0;
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	}
-	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
-	else {
+	else
+	{
 		throw std::invalid_argument("unsupported layout transition!");
 	}
 
@@ -957,12 +1037,12 @@ void DreamVulkanGraphics::transitionImageLayout(VkImage image, VkFormat format, 
 		0,
 		0, nullptr,
 		0, nullptr,
-		1, &barrier
-	);
+		1, &barrier);
 	endSingleTimeCommands(commandBuffer);
 }
 
-void DreamVulkanGraphics::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+void DreamVulkanGraphics::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+{
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
 	VkBufferImageCopy region{};
@@ -975,12 +1055,11 @@ void DreamVulkanGraphics::copyBufferToImage(VkBuffer buffer, VkImage image, uint
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = 1;
 
-	region.imageOffset = { 0, 0, 0 };
+	region.imageOffset = {0, 0, 0};
 	region.imageExtent = {
 		width,
 		height,
-		1
-	};
+		1};
 
 	vkCmdCopyBufferToImage(
 		commandBuffer,
@@ -988,12 +1067,12 @@ void DreamVulkanGraphics::copyBufferToImage(VkBuffer buffer, VkImage image, uint
 		image,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1,
-		&region
-	);
+		&region);
 	endSingleTimeCommands(commandBuffer);
 }
 
-VkImageView DreamVulkanGraphics::createImageView(VkImage image, VkFormat format) {
+VkImageView DreamVulkanGraphics::createImageView(VkImage image, VkFormat format)
+{
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = image;
@@ -1006,14 +1085,16 @@ VkImageView DreamVulkanGraphics::createImageView(VkImage image, VkFormat format)
 	viewInfo.subresourceRange.layerCount = 1;
 
 	VkImageView imageView;
-	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+	if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create texture image view!");
 	}
 
 	return imageView;
 }
 
-void DreamVulkanGraphics::createTextureSampler() {
+void DreamVulkanGraphics::createTextureSampler()
+{
 	VkPhysicalDeviceProperties properties{};
 	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
@@ -1037,7 +1118,8 @@ void DreamVulkanGraphics::createTextureSampler() {
 	samplerInfo.anisotropyEnable = VK_FALSE;
 	samplerInfo.maxAnisotropy = 1.0f;
 
-	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create texture sampler!");
 	}
 }
@@ -1083,17 +1165,17 @@ void DreamVulkanGraphics::ClearScreen()
 
 	VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
 		recreateSwapChain();
 		return;
 	}
-	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
 	vkResetFences(device, 1, &inFlightFences[currentFrame]);
-
-
 
 	vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 	recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -1108,7 +1190,7 @@ void DreamVulkanGraphics::ClearScreen()
 	vkCmdSetViewport(commandBuffers[currentFrame], 0, 1, &viewport);
 
 	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
+	scissor.offset = {0, 0};
 	scissor.extent = swapChainExtent;
 	vkCmdSetScissor(commandBuffers[currentFrame], 0, 1, &scissor);
 }
@@ -1118,15 +1200,16 @@ void DreamVulkanGraphics::SwapBuffers()
 
 	vkCmdEndRenderPass(commandBuffers[currentFrame]);
 
-	if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS) {
+	if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to record command buffer!");
 	}
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+	VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
@@ -1134,11 +1217,12 @@ void DreamVulkanGraphics::SwapBuffers()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+	VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to submit draw command buffer!");
 	}
 
@@ -1148,7 +1232,7 @@ void DreamVulkanGraphics::SwapBuffers()
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
-	VkSwapchainKHR swapChains[] = { swapChain };
+	VkSwapchainKHR swapChains[] = {swapChain};
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
 
@@ -1156,11 +1240,13 @@ void DreamVulkanGraphics::SwapBuffers()
 
 	VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized)
+	{
 		framebufferResized = false;
 		recreateSwapChain();
 	}
-	else if (result != VK_SUCCESS) {
+	else if (result != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to present swap chain image!");
 	}
 
@@ -1171,18 +1257,20 @@ void DreamVulkanGraphics::CheckInputs()
 {
 }
 
-DreamVertexArray* DreamVulkanGraphics::GenerateVertexArray(DreamBuffer* vert, DreamBuffer* ind)
+DreamVertexArray *DreamVulkanGraphics::GenerateVertexArray(DreamBuffer *vert, DreamBuffer *ind)
 {
 	return new DreamVulkanVertexArray(vert, ind);
 }
 
-
-uint32_t DreamVulkanGraphics::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t DreamVulkanGraphics::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
-	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+	{
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
 			return i;
 		}
 	}
@@ -1191,7 +1279,7 @@ uint32_t DreamVulkanGraphics::findMemoryType(uint32_t typeFilter, VkMemoryProper
 	return -1;
 }
 
-DreamBuffer* DreamVulkanGraphics::GenerateBuffer(BufferType type, void* bufferData, size_t numOfElements, std::vector<size_t> strides, std::vector<size_t> offests, VertexDataUsage dataUsage)
+DreamBuffer *DreamVulkanGraphics::GenerateBuffer(BufferType type, void *bufferData, size_t numOfElements, std::vector<size_t> strides, std::vector<size_t> offests, VertexDataUsage dataUsage)
 {
 	VkBuffer buffer;
 	VkDeviceMemory bufferMemory;
@@ -1199,25 +1287,31 @@ DreamBuffer* DreamVulkanGraphics::GenerateBuffer(BufferType type, void* bufferDa
 
 	size_t numOfBuffers = strides.size();
 	size_t dataSize = 0;
-	for (size_t i = 0; i < numOfBuffers; i++) {
+	for (size_t i = 0; i < numOfBuffers; i++)
+	{
 		dataSize += strides[i];
 	}
 	dataSize *= numOfElements;
 
-	switch (type) {
-	case ArrayBuffer: {
+	switch (type)
+	{
+	case ArrayBuffer:
+	{
 		flag = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		break;
 	}
-	case ElementArrayBuffer: {
+	case ElementArrayBuffer:
+	{
 		flag = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 		break;
 	}
-	case UniformBuffer: {
+	case UniformBuffer:
+	{
 		flag = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		break;
 	}
-	case TextureBuffer: {
+	case TextureBuffer:
+	{
 		flag = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		break;
 	}
@@ -1229,11 +1323,12 @@ DreamBuffer* DreamVulkanGraphics::GenerateBuffer(BufferType type, void* bufferDa
 	bufferInfo.usage = flag;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	//VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-	//VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-	//VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+	// VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+	// VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+	// VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
 
-	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create vertex buffer!");
 	}
 
@@ -1245,40 +1340,44 @@ DreamBuffer* DreamVulkanGraphics::GenerateBuffer(BufferType type, void* bufferDa
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-	if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to allocate vertex buffer memory!");
 	}
 
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
 
-	void* data;
+	void *data;
 	vkMapMemory(device, bufferMemory, 0, bufferInfo.size, 0, &data);
 
-	if (bufferData) {
+	if (bufferData)
+	{
 		memcpy(data, bufferData, (size_t)bufferInfo.size);
 	}
-	else {
+	else
+	{
 		memset(data, 0, (size_t)bufferInfo.size);
 	}
-	
-	if (type != UniformBuffer) {
+
+	if (type != UniformBuffer)
+	{
 		vkUnmapMemory(device, bufferMemory);
 	}
 
-	//vkDestroyBuffer(device, vertexBuffer, nullptr);
-	//vkFreeMemory(device, vertexBufferMemory, nullptr);
-	VulkanBufferContainer* container = new VulkanBufferContainer(buffer, bufferMemory);
+	// vkDestroyBuffer(device, vertexBuffer, nullptr);
+	// vkFreeMemory(device, vertexBufferMemory, nullptr);
+	VulkanBufferContainer *container = new VulkanBufferContainer(buffer, bufferMemory);
 	return new DreamBuffer(container, data, type, dataSize, numOfBuffers, &strides[0], &offests[0]);
 }
 
-DreamBuffer* DreamVulkanGraphics::GenerateBuffer(BufferType type, size_t bufferSize)
+DreamBuffer *DreamVulkanGraphics::GenerateBuffer(BufferType type, size_t bufferSize)
 {
-	return GenerateBuffer(type, nullptr, 1, { bufferSize }, { 0 }, StaticDraw);
+	return GenerateBuffer(type, nullptr, 1, {bufferSize}, {0}, StaticDraw);
 }
 
-DreamPointer* DreamVulkanGraphics::GenerateTexture(unsigned char* pixelBuffer, int texWidth, int texHeight)
+DreamPointer *DreamVulkanGraphics::GenerateTexture(unsigned char *pixelBuffer, int texWidth, int texHeight)
 {
-	DreamBuffer* textureBuffer = GenerateBuffer(TextureBuffer, pixelBuffer, (texWidth * texHeight), {4});
+	DreamBuffer *textureBuffer = GenerateBuffer(TextureBuffer, pixelBuffer, (texWidth * texHeight), {4});
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
 
@@ -1297,7 +1396,8 @@ DreamPointer* DreamVulkanGraphics::GenerateTexture(unsigned char* pixelBuffer, i
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS) {
+	if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create image!");
 	}
 
@@ -1309,7 +1409,8 @@ DreamPointer* DreamVulkanGraphics::GenerateTexture(unsigned char* pixelBuffer, i
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUCCESS) {
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to allocate image memory!");
 	}
 
@@ -1317,40 +1418,42 @@ DreamPointer* DreamVulkanGraphics::GenerateTexture(unsigned char* pixelBuffer, i
 
 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	VulkanBufferContainer* container = (VulkanBufferContainer*)textureBuffer->GetBufferPointer().GetStoredPointer();
+	VulkanBufferContainer *container = (VulkanBufferContainer *)textureBuffer->GetBufferPointer().GetStoredPointer();
 	copyBufferToImage(container->buffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 
 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
 
 	VkImageView imgView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
 
 	return new DreamPointer(new VulkanImageContainer(textureBuffer, textureImageMemory, textureImage, imgView, textureSampler));
 }
 
-void DreamVulkanGraphics::UpdateBufferData(DreamBuffer* buffer, void* bufferData, size_t bufSize, VertexDataUsage dataUsage)
+void DreamVulkanGraphics::UpdateBufferData(DreamBuffer *buffer, void *bufferData, size_t bufSize, VertexDataUsage dataUsage)
 {
 	memcpy(buffer->GetMemoryPointer(), bufferData, bufSize);
 }
 
-void DreamVulkanGraphics::BindBuffer(BufferType type, DreamBuffer* buffer)
+void DreamVulkanGraphics::BindBuffer(BufferType type, DreamBuffer *buffer)
 {
-	VulkanBufferContainer* container = (VulkanBufferContainer*)buffer->GetBufferPointer().GetStoredPointer();
-	switch (type) {
-	case ArrayBuffer: {
-		VkBuffer vertexBuffers[] = { container->buffer };
-		VkDeviceSize offsets[] = { 0 };
+	VulkanBufferContainer *container = (VulkanBufferContainer *)buffer->GetBufferPointer().GetStoredPointer();
+	switch (type)
+	{
+	case ArrayBuffer:
+	{
+		VkBuffer vertexBuffers[] = {container->buffer};
+		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffers[currentFrame], 0, 1, vertexBuffers, offsets);
 		break;
 	}
-	case ElementArrayBuffer: {
+	case ElementArrayBuffer:
+	{
 		vkCmdBindIndexBuffer(commandBuffers[currentFrame], container->buffer, 0, VK_INDEX_TYPE_UINT32);
 		break;
 	}
 	}
 }
 
-void DreamVulkanGraphics::BindTexture(DreamTexture* texture, int bindingPoint)
+void DreamVulkanGraphics::BindTexture(DreamTexture *texture, int bindingPoint)
 {
 }
 
@@ -1362,16 +1465,20 @@ void DreamVulkanGraphics::AddVertexLayoutData(std::string dataName, int size, un
 {
 	VkFormat format = VkFormat::VK_FORMAT_UNDEFINED;
 
-	switch (size) {
-	case 2: {
+	switch (size)
+	{
+	case 2:
+	{
 		format = VK_FORMAT_R32G32_SFLOAT;
 		break;
 	}
-	case 3: {
+	case 3:
+	{
 		format = VK_FORMAT_R32G32B32_SFLOAT;
 		break;
 	}
-	case 4: {
+	case 4:
+	{
 		format = VK_FORMAT_R32G32B32A32_SFLOAT;
 		break;
 	}
@@ -1388,10 +1495,10 @@ void DreamVulkanGraphics::AddVertexLayoutData(std::string dataName, int size, un
 	vertexArrayStrideCount += sizeOf;
 }
 
-DreamPointer* DreamVulkanGraphics::FinalizeVertexLayout()
+DreamPointer *DreamVulkanGraphics::FinalizeVertexLayout()
 {
 	int size = attributeDesc.size();
-	VkVertexInputAttributeDescription* descArray = new VkVertexInputAttributeDescription[size];
+	VkVertexInputAttributeDescription *descArray = new VkVertexInputAttributeDescription[size];
 	std::copy(attributeDesc.begin(), attributeDesc.end(), descArray);
 
 	attributeDesc.clear();
@@ -1404,7 +1511,7 @@ void DreamVulkanGraphics::UnBindBuffer(BufferType type)
 {
 }
 
-DreamShader* DreamVulkanGraphics::LoadShader(const wchar_t* file, ShaderType shaderType)
+DreamShader *DreamVulkanGraphics::LoadShader(const wchar_t *file, ShaderType shaderType)
 {
 	bool hasMat = false;
 	DreamShaderResources resources;
@@ -1419,13 +1526,13 @@ DreamShader* DreamVulkanGraphics::LoadShader(const wchar_t* file, ShaderType sha
 
 	DreamFileIO::OpenFileRead(path.c_str(), std::ios::ate | std::ios::binary);
 
-	char* shaderCode = nullptr;
+	char *shaderCode = nullptr;
 	size_t length;
 	DreamFileIO::ReadFullFileQuick(&shaderCode, length);
 	DreamFileIO::CloseFileRead();
 
 	// Read SPIR-V from disk or similar.
-	uint32_t* code = reinterpret_cast<uint32_t*>(shaderCode);
+	uint32_t *code = reinterpret_cast<uint32_t *>(shaderCode);
 	spirv_cross::Compiler refle(code, length / sizeof(uint32_t));
 
 	LoadShaderResources(refle, resources, hasMat);
@@ -1436,22 +1543,25 @@ DreamShader* DreamVulkanGraphics::LoadShader(const wchar_t* file, ShaderType sha
 	createInfo.pCode = code;
 
 	VkShaderModule shaderModule;
-	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+	{
 		throw std::runtime_error("failed to create shader module!");
 		return nullptr;
 	}
-	//vkDestroyShaderModule(device, shaderModule, nullptr);
+	// vkDestroyShaderModule(device, shaderModule, nullptr);
 
-	DreamShader* shader = new DreamShader(shaderType, DreamPointer((void*)shaderModule), resources, hasMat);
-	if (shaderType == VertexShader) {
+	DreamShader *shader = new DreamShader(shaderType, DreamPointer((void *)shaderModule), resources, hasMat);
+	if (shaderType == VertexShader)
+	{
 		shader->CreateVertexInputLayout();
 	}
 	return shader;
 }
 
-void DreamVulkanGraphics::ReleaseShader(DreamShader* shader)
+void DreamVulkanGraphics::ReleaseShader(DreamShader *shader)
 {
-	if (shader) {
+	if (shader)
+	{
 		VkShaderModule module = (VkShaderModule)(shader->GetShaderPtr().GetStoredPointer());
 
 		vkDestroyShaderModule(device, module, nullptr);
@@ -1475,12 +1585,15 @@ void DreamVulkanGraphics::Draw()
 {
 }
 
-void DreamVulkanGraphics::cleanupSwapChain() {
-	for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
+void DreamVulkanGraphics::cleanupSwapChain()
+{
+	for (size_t i = 0; i < swapChainFramebuffers.size(); i++)
+	{
 		vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
 	}
 
-	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+	for (size_t i = 0; i < swapChainImageViews.size(); i++)
+	{
 		vkDestroyImageView(device, swapChainImageViews[i], nullptr);
 	}
 
@@ -1493,15 +1606,18 @@ void DreamVulkanGraphics::TerminateGraphics()
 
 	cleanupSwapChain();
 
-	if (enableValidationLayers) {
+	if (enableValidationLayers)
+	{
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
-	for (int i = 0; i < descSetLayouts.size(); i++) {
+	for (int i = 0; i < descSetLayouts.size(); i++)
+	{
 		vkDestroyDescriptorSetLayout(device, descSetLayouts[i], nullptr);
 	}
 
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
 		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
 		vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(device, inFlightFences[i], nullptr);
@@ -1520,24 +1636,27 @@ void DreamVulkanGraphics::DestroyWindow()
 	glfwDestroyWindow(window);
 }
 
-void DreamVulkanGraphics::DestroyBuffer(DreamBuffer* buffer)
+void DreamVulkanGraphics::DestroyBuffer(DreamBuffer *buffer)
 {
 	vkDeviceWaitIdle(device);
 
-	VulkanBufferContainer* container = (VulkanBufferContainer*)buffer->GetBufferPointer().GetStoredPointer();
+	VulkanBufferContainer *container = (VulkanBufferContainer *)buffer->GetBufferPointer().GetStoredPointer();
 
-	if (buffer->GetBufferType() == UniformBuffer) {
+	if (buffer->GetBufferType() == UniformBuffer)
+	{
 		vkUnmapMemory(device, container->bufferMemory);
 	}
 	vkDestroyBuffer(device, container->buffer, nullptr);
 	vkFreeMemory(device, container->bufferMemory, nullptr);
 
-	if (container) {
+	if (container)
+	{
 		delete container;
 		container = nullptr;
 	}
 
-	if (buffer) {
+	if (buffer)
+	{
 		delete buffer;
 		buffer = nullptr;
 	}
@@ -1545,36 +1664,41 @@ void DreamVulkanGraphics::DestroyBuffer(DreamBuffer* buffer)
 
 DreamVulkanShaderLinker::DreamVulkanShaderLinker()
 {
-	vulkanGraphics = (DreamVulkanGraphics*)DreamGraphics::GetInstance();
+	vulkanGraphics = (DreamVulkanGraphics *)DreamGraphics::GetInstance();
 }
-DreamVulkanShaderLinker::~DreamVulkanShaderLinker() {
+DreamVulkanShaderLinker::~DreamVulkanShaderLinker()
+{
 
 	vulkanGraphics->DestroyGraphicsPipeline(graphicsPipeline, pipelineLayout);
 }
 
-void DreamVulkanShaderLinker::AttachShader(DreamShader* shader)
+void DreamVulkanShaderLinker::AttachShader(DreamShader *shader)
 {
 	VkShaderModule shaderModule = (VkShaderModule)shader->GetShaderPtr().GetStoredPointer();
 
 	VkShaderStageFlagBits flags = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
 	switch (shader->GetShaderType())
 	{
-	case VertexShader: {
+	case VertexShader:
+	{
 		vertexInputLayout = shader->GetInputLayout();
 		flags = VK_SHADER_STAGE_VERTEX_BIT;
 		break;
 	}
-	case PixelShader: {
+	case PixelShader:
+	{
 		flags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		break;
 	}
-	case GeometryShader: {
+	case GeometryShader:
+	{
 		flags = VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
 		break;
 	}
 	}
-	
-	for(auto& uniformsData : shader->shaderResources.uniforms){
+
+	for (auto &uniformsData : shader->shaderResources.uniforms)
+	{
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = uniformsData.second.bindingIndex;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1582,14 +1706,15 @@ void DreamVulkanShaderLinker::AttachShader(DreamShader* shader)
 		uboLayoutBinding.stageFlags = flags;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-		//VkDescriptorBindingFlags flag;
-		//VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo;
-		//bindingFlagsInfo.pBindingFlags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+		// VkDescriptorBindingFlags flag;
+		// VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo;
+		// bindingFlagsInfo.pBindingFlags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
 		descriptorBindings.push_back(uboLayoutBinding);
 	}
 
-	for (auto& uniformsData : shader->shaderResources.samplerBindings) {
+	for (auto &uniformsData : shader->shaderResources.samplerBindings)
+	{
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = uniformsData.second;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1597,9 +1722,9 @@ void DreamVulkanShaderLinker::AttachShader(DreamShader* shader)
 		uboLayoutBinding.stageFlags = flags;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-		//VkDescriptorBindingFlags flag;
-		//VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo;
-		//bindingFlagsInfo.pBindingFlags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+		// VkDescriptorBindingFlags flag;
+		// VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo;
+		// bindingFlagsInfo.pBindingFlags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
 		descriptorBindings.push_back(uboLayoutBinding);
 	}
@@ -1617,17 +1742,22 @@ void DreamVulkanShaderLinker::AttachShader(DreamShader* shader)
 void DreamVulkanShaderLinker::Finalize()
 {
 	unsigned int bindingPointIndex = 2;
-	for (int i = 0; i < linkedShaders.size(); i++) {
-		for (auto& uniformData : linkedShaders[i]->shaderResources.uniforms) {
+	for (int i = 0; i < linkedShaders.size(); i++)
+	{
+		for (auto &uniformData : linkedShaders[i]->shaderResources.uniforms)
+		{
 			std::string name = uniformData.first;
 
-			if (name == "ConstantData") {
+			if (name == "ConstantData")
+			{
 				bindingPoints[name] = 0;
 			}
-			else if (name == "MaterialData") {
+			else if (name == "MaterialData")
+			{
 				bindingPoints[name] = 1;
 			}
-			else {
+			else
+			{
 				bindingPoints[name] = bindingPointIndex;
 				bindingPointIndex++;
 			}
@@ -1636,27 +1766,30 @@ void DreamVulkanShaderLinker::Finalize()
 	graphicsPipeline = vulkanGraphics->CreateGraphicPipeLine(shadersStageInfo, pipelineLayout, pipelineDescSet, descriptorBindings, descriptorSetLayout, vertexInputLayout);
 }
 
-void DreamVulkanShaderLinker::BindShaderLink(UniformIndexStore& indexStore, std::unordered_map<std::string, DreamTexture*> texMap)
+void DreamVulkanShaderLinker::BindShaderLink(UniformIndexStore &indexStore, std::unordered_map<std::string, DreamTexture *> texMap)
 {
 	uint32_t curFrame = DreamGraphics::GetInstance()->currentFrame;
 	uint32_t maxFramesInFlight = DreamGraphics::GetInstance()->GetMaxFramesInFlight();
 	int descSetIndex = (indexStore["DescriptorSet"] * maxFramesInFlight) + curFrame;
 
-	for (size_t i = 0; i < linkedShaders.size(); i++) {
-		for (auto& samplerData : linkedShaders[i]->shaderResources.samplerBindings) {
+	for (size_t i = 0; i < linkedShaders.size(); i++)
+	{
+		for (auto &samplerData : linkedShaders[i]->shaderResources.samplerBindings)
+		{
 			int index = (indexStore[samplerData.first] * maxFramesInFlight) + curFrame;
 			std::string name = samplerData.first;
 
-			if (!texMap.contains(name)) {
+			if (!texMap.contains(name))
+			{
 				continue;
 			}
 
 			unsigned int bindPoint = bindingPoints[name];
 			unsigned int bindIndex = samplerData.second;
 
-			VulkanImageContainer* container = (VulkanImageContainer*)texMap[name]->GetTexturePointer()->GetStoredPointer();
+			VulkanImageContainer *container = (VulkanImageContainer *)texMap[name]->GetTexturePointer()->GetStoredPointer();
 
-			VkDescriptorImageInfo  imageInfo{};
+			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = container->imageView;
 			imageInfo.sampler = container->samplerRef;
@@ -1669,16 +1802,16 @@ void DreamVulkanShaderLinker::BindShaderLink(UniformIndexStore& indexStore, std:
 			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrite.descriptorCount = 1;
 			descriptorWrite.pBufferInfo = nullptr;
-			descriptorWrite.pImageInfo = &imageInfo; // Optional
+			descriptorWrite.pImageInfo = &imageInfo;	// Optional
 			descriptorWrite.pTexelBufferView = nullptr; // Optional
 
 			vulkanGraphics->updateDescriptorSet(descriptorWrite);
 		}
-		for (auto& uniformData : linkedShaders[i]->shaderResources.uniforms) {
+		for (auto &uniformData : linkedShaders[i]->shaderResources.uniforms)
+		{
 			int index = (indexStore[uniformData.first] * maxFramesInFlight) + curFrame;
 
-
-			VulkanBufferContainer* container = (VulkanBufferContainer*)uniformData.second.buffers[index]->GetBufferPointer().GetStoredPointer();
+			VulkanBufferContainer *container = (VulkanBufferContainer *)uniformData.second.buffers[index]->GetBufferPointer().GetStoredPointer();
 			std::string name = uniformData.first;
 			unsigned int bindPoint = bindingPoints[name];
 			unsigned int bindIndex = uniformData.second.bindingIndex;
@@ -1696,7 +1829,7 @@ void DreamVulkanShaderLinker::BindShaderLink(UniformIndexStore& indexStore, std:
 			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			descriptorWrite.descriptorCount = 1;
 			descriptorWrite.pBufferInfo = &bufferInfo;
-			descriptorWrite.pImageInfo = nullptr; // Optional
+			descriptorWrite.pImageInfo = nullptr;		// Optional
 			descriptorWrite.pTexelBufferView = nullptr; // Optional
 
 			vulkanGraphics->updateDescriptorSet(descriptorWrite);
@@ -1711,26 +1844,25 @@ void DreamVulkanShaderLinker::UnBindShaderLink()
 {
 }
 
-void DreamVulkanShaderLinker::AddNewObjectInfo(UniformIndexStore& store)
+void DreamVulkanShaderLinker::AddNewObjectInfo(UniformIndexStore &store)
 {
 	int index = vulkanGraphics->addNewDescriptorSets(pipelineDescSet, descriptorSetLayout);
 	store["DescriptorSet"] = index;
 }
 
-DreamVulkanVertexArray::DreamVulkanVertexArray(DreamBuffer* vert, DreamBuffer* ind) : DreamVertexArray(vert, ind)
+DreamVulkanVertexArray::DreamVulkanVertexArray(DreamBuffer *vert, DreamBuffer *ind) : DreamVertexArray(vert, ind)
 {
-
 }
 
 DreamVulkanVertexArray::~DreamVulkanVertexArray()
 {
-
 }
 
 void DreamVulkanVertexArray::Bind()
 {
 	graphics->BindBuffer(BufferType::ArrayBuffer, vertexBuffer);
-	if (indexBuffer) {
+	if (indexBuffer)
+	{
 		graphics->BindBuffer(BufferType::ElementArrayBuffer, indexBuffer);
 	}
 }

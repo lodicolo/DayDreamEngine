@@ -1,3 +1,5 @@
+#ifdef WINDOWS
+
 #include "DreamDX11Graphics.h"
 #include <iostream>
 #include <d3dcompiler.h>
@@ -8,7 +10,7 @@
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-DreamDX11Graphics* instance = nullptr;
+DreamDX11Graphics *instance = nullptr;
 
 LRESULT DreamDX11Graphics::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -18,23 +20,38 @@ LRESULT DreamDX11Graphics::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 DreamDX11Graphics::DreamDX11Graphics() : DreamGraphics()
 {
 	clearScreenColor = DreamVector4(0.4f, 0.6f, 0.75f, 0.0f);
-	if (!instance) {
+	if (!instance)
+	{
 		instance = this;
-	}	
+	}
 }
-
 
 DreamDX11Graphics::~DreamDX11Graphics()
 {
-	if (depthStencilView) { depthStencilView->Release(); }
-	if (backBufferRTV) { backBufferRTV->Release(); }
+	if (depthStencilView)
+	{
+		depthStencilView->Release();
+	}
+	if (backBufferRTV)
+	{
+		backBufferRTV->Release();
+	}
 
-	if (swapChain) { swapChain->Release(); }
-	if (context) { context->Release(); }
-	if (device) { device->Release(); }
+	if (swapChain)
+	{
+		swapChain->Release();
+	}
+	if (context)
+	{
+		context->Release();
+	}
+	if (device)
+	{
+		device->Release();
+	}
 }
 
-long DreamDX11Graphics::InitWindow(int w, int h, const char* title)
+long DreamDX11Graphics::InitWindow(int w, int h, const char *title)
 {
 	width = w;
 	height = h;
@@ -42,14 +59,14 @@ long DreamDX11Graphics::InitWindow(int w, int h, const char* title)
 
 	// Start window creation by filling out the
 	// appropriate window class struct
-	WNDCLASS wndClass = {}; // Zero out the memory
-	wndClass.style = CS_HREDRAW | CS_VREDRAW;	// Redraw on horizontal or vertical movement/adjustment
+	WNDCLASS wndClass = {};					  // Zero out the memory
+	wndClass.style = CS_HREDRAW | CS_VREDRAW; // Redraw on horizontal or vertical movement/adjustment
 	wndClass.lpfnWndProc = DreamDX11Graphics::WindowProc;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
-	wndClass.hInstance = hInstance;						// Our app's handle
-	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);	// Default icon
-	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);		// Default arrow cursor
+	wndClass.hInstance = hInstance;					  // Our app's handle
+	wndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION); // Default icon
+	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);	  // Default arrow cursor
 	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName = NULL;
 	wndClass.lpszClassName = L"Direct3DWindowClass";
@@ -72,8 +89,8 @@ long DreamDX11Graphics::InitWindow(int w, int h, const char* title)
 	SetRect(&clientRect, 0, 0, width, height);
 	AdjustWindowRect(
 		&clientRect,
-		WS_OVERLAPPEDWINDOW,	// Has a title bar, border, min and max buttons, etc.
-		false);					// No menu bar
+		WS_OVERLAPPEDWINDOW, // Has a title bar, border, min and max buttons, etc.
+		false);				 // No menu bar
 
 	// Center the window to the screen
 	RECT desktopRect;
@@ -90,12 +107,12 @@ long DreamDX11Graphics::InitWindow(int w, int h, const char* title)
 		WS_OVERLAPPEDWINDOW,
 		centeredX,
 		centeredY,
-		clientRect.right - clientRect.left,	// Calculated width
-		clientRect.bottom - clientRect.top,	// Calculated height
-		0,			// No parent window
-		0,			// No menu
-		hInstance,	// The app's handle
-		0);			// No other windows in our application
+		clientRect.right - clientRect.left, // Calculated width
+		clientRect.bottom - clientRect.top, // Calculated height
+		0,									// No parent window
+		0,									// No menu
+		hInstance,							// The app's handle
+		0);									// No other windows in our application
 
 	// Ensure the window was created properly
 	if (hWnd == NULL)
@@ -149,32 +166,34 @@ long DreamDX11Graphics::InitGraphics()
 
 	// Attempt to initialize DirectX
 	hr = D3D11CreateDeviceAndSwapChain(
-		0,							// Video adapter (physical GPU) to use, or null for default
-		D3D_DRIVER_TYPE_HARDWARE,	// We want to use the hardware (GPU)
-		0,							// Used when doing software rendering
-		deviceFlags,				// Any special options
-		0,							// Optional array of possible verisons we want as fallbacks
-		0,							// The number of fallbacks in the above param
-		D3D11_SDK_VERSION,			// Current version of the SDK
-		&swapDesc,					// Address of swap chain options
-		&swapChain,					// Pointer to our Swap Chain pointer
-		&device,					// Pointer to our Device pointer
-		&dxFeatureLevel,			// This will hold the actual feature level the app will use
-		&context);					// Pointer to our Device Context pointer
-	if (FAILED(hr)) return hr;
+		0,						  // Video adapter (physical GPU) to use, or null for default
+		D3D_DRIVER_TYPE_HARDWARE, // We want to use the hardware (GPU)
+		0,						  // Used when doing software rendering
+		deviceFlags,			  // Any special options
+		0,						  // Optional array of possible verisons we want as fallbacks
+		0,						  // The number of fallbacks in the above param
+		D3D11_SDK_VERSION,		  // Current version of the SDK
+		&swapDesc,				  // Address of swap chain options
+		&swapChain,				  // Pointer to our Swap Chain pointer
+		&device,				  // Pointer to our Device pointer
+		&dxFeatureLevel,		  // This will hold the actual feature level the app will use
+		&context);				  // Pointer to our Device Context pointer
+	if (FAILED(hr))
+		return hr;
 
 	// The above function created the back buffer render target
 	// for us, but we need a reference to it
-	ID3D11Texture2D* backBufferTexture = {};
+	ID3D11Texture2D *backBufferTexture = {};
 	swapChain->GetBuffer(
 		0,
 		__uuidof(ID3D11Texture2D),
-		(void**)&backBufferTexture);
+		(void **)&backBufferTexture);
 
 	// Now that we have the texture, create a render target view
 	// for the back buffer so we can render into it.  Then release
 	// our local reference to the texture, since we have the view.
-	if (backBufferTexture) {
+	if (backBufferTexture)
+	{
 		device->CreateRenderTargetView(
 			backBufferTexture,
 			0,
@@ -196,16 +215,17 @@ long DreamDX11Graphics::InitGraphics()
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 
-	// Create the depth buffer and its view, then 
+	// Create the depth buffer and its view, then
 	// release our reference to the texture
-	ID3D11Texture2D* depthBufferTexture = {};
+	ID3D11Texture2D *depthBufferTexture = {};
 	device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
-	if (depthBufferTexture) {
+	if (depthBufferTexture)
+	{
 		device->CreateDepthStencilView(depthBufferTexture, 0, &depthStencilView);
 		depthBufferTexture->Release();
 	}
 
-	// Bind the views to the pipeline, so rendering properly 
+	// Bind the views to the pipeline, so rendering properly
 	// uses their underlying textures
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
@@ -230,8 +250,14 @@ void DreamDX11Graphics::SetViewPort(int posX, int posY, int w, int h)
 	height = h;
 
 	// Release existing DirectX views and buffers
-	if (depthStencilView) { depthStencilView->Release(); }
-	if (backBufferRTV) { backBufferRTV->Release(); }
+	if (depthStencilView)
+	{
+		depthStencilView->Release();
+	}
+	if (backBufferRTV)
+	{
+		backBufferRTV->Release();
+	}
 
 	// Resize the underlying swap chain buffers
 	swapChain->ResizeBuffers(
@@ -243,10 +269,11 @@ void DreamDX11Graphics::SetViewPort(int posX, int posY, int w, int h)
 
 	// Recreate the render target view for the back buffer
 	// texture, then release our local texture reference
-	ID3D11Texture2D* backBufferTexture = {};
-	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
+	ID3D11Texture2D *backBufferTexture = {};
+	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBufferTexture));
 
-	if (backBufferTexture) {
+	if (backBufferTexture)
+	{
 		device->CreateRenderTargetView(backBufferTexture, 0, &backBufferRTV);
 		backBufferTexture->Release();
 	}
@@ -265,17 +292,17 @@ void DreamDX11Graphics::SetViewPort(int posX, int posY, int w, int h)
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 
-	// Create the depth buffer and its view, then 
+	// Create the depth buffer and its view, then
 	// release our reference to the texture
-	ID3D11Texture2D* depthBufferTexture = {};
+	ID3D11Texture2D *depthBufferTexture = {};
 	device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
-	if (depthBufferTexture) {
+	if (depthBufferTexture)
+	{
 		device->CreateDepthStencilView(depthBufferTexture, 0, &depthStencilView);
 		depthBufferTexture->Release();
 	}
-	
 
-	// Bind the views to the pipeline, so rendering properly 
+	// Bind the views to the pipeline, so rendering properly
 	// uses their underlying textures
 	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
 
@@ -316,7 +343,7 @@ bool DreamDX11Graphics::CheckWindowClose()
 
 void DreamDX11Graphics::ClearScreen()
 {
-	const float color[4] = { clearScreenColor.x, clearScreenColor.y, clearScreenColor.z, clearScreenColor.w };
+	const float color[4] = {clearScreenColor.x, clearScreenColor.y, clearScreenColor.z, clearScreenColor.w};
 
 	context->ClearRenderTargetView(backBufferRTV, color);
 	context->ClearDepthStencilView(
@@ -335,19 +362,20 @@ void DreamDX11Graphics::CheckInputs()
 {
 }
 
-DreamVertexArray* DreamDX11Graphics::GenerateVertexArray(DreamBuffer* vert, DreamBuffer* ind)
+DreamVertexArray *DreamDX11Graphics::GenerateVertexArray(DreamBuffer *vert, DreamBuffer *ind)
 {
 	return new DreamDX11VertexArray(vert, ind);
 }
 
-DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, void* bufferData, size_t numOfElements, std::vector<size_t> strides, std::vector<size_t> offests, VertexDataUsage dataUsage)
+DreamBuffer *DreamDX11Graphics::GenerateBuffer(BufferType type, void *bufferData, size_t numOfElements, std::vector<size_t> strides, std::vector<size_t> offests, VertexDataUsage dataUsage)
 {
-	ID3D11Buffer* buffer = nullptr;
+	ID3D11Buffer *buffer = nullptr;
 
 	size_t numOfBuffers = strides.size();
 
 	size_t dataSize = 0;
-	for (size_t i = 0; i < numOfBuffers; i++) {
+	for (size_t i = 0; i < numOfBuffers; i++)
+	{
 		dataSize += strides[i];
 	}
 	dataSize *= numOfElements;
@@ -359,12 +387,14 @@ DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, void* bufferData
 	D3D11_SUBRESOURCE_DATA initialBufferData;
 	initialBufferData.pSysMem = bufferData;
 
-	switch (type) {
-	case BufferType::ArrayBuffer: {
+	switch (type)
+	{
+	case BufferType::ArrayBuffer:
+	{
 		D3D11_BUFFER_DESC vbd;
 
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth =  dataSize;       // 3 = number of vertices in the buffer
+		vbd.ByteWidth = dataSize;				  // 3 = number of vertices in the buffer
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;
@@ -375,11 +405,12 @@ DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, void* bufferData
 		device->CreateBuffer(&vbd, &initialBufferData, &buffer);
 		break;
 	}
-	case BufferType::ElementArrayBuffer: {
+	case BufferType::ElementArrayBuffer:
+	{
 		D3D11_BUFFER_DESC vbd;
 
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth = dataSize;       // 3 = number of vertices in the buffer
+		vbd.ByteWidth = dataSize;				 // 3 = number of vertices in the buffer
 		vbd.BindFlags = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is a vertex buffer
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;
@@ -390,16 +421,16 @@ DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, void* bufferData
 		device->CreateBuffer(&vbd, &initialBufferData, &buffer);
 		break;
 	}
-	case BufferType::UniformBuffer: {
+	case BufferType::UniformBuffer:
+	{
 		D3D11_BUFFER_DESC vbd;
 
 		vbd.Usage = D3D11_USAGE_DEFAULT;
-		vbd.ByteWidth = dataSize;       // 3 = number of vertices in the buffer
+		vbd.ByteWidth = dataSize;					// 3 = number of vertices in the buffer
 		vbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER; // Tells DirectX this is a vertex buffer
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;
 		vbd.StructureByteStride = 0;
-
 
 		// Actually create the buffer with the initial data
 		// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
@@ -408,80 +439,89 @@ DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, void* bufferData
 	}
 	}
 
-	return new DreamBuffer((void*)buffer, nullptr, type, dataSize, numOfBuffers, &strides[0], &offests[0]);
+	return new DreamBuffer((void *)buffer, nullptr, type, dataSize, numOfBuffers, &strides[0], &offests[0]);
 }
 
-DreamBuffer* DreamDX11Graphics::GenerateBuffer(BufferType type, size_t bufferSize)
+DreamBuffer *DreamDX11Graphics::GenerateBuffer(BufferType type, size_t bufferSize)
 {
-	return GenerateBuffer(type, nullptr, 1, { bufferSize }, { 0 }, StaticDraw);
+	return GenerateBuffer(type, nullptr, 1, {bufferSize}, {0}, StaticDraw);
 }
 
-DreamPointer* DreamDX11Graphics::GenerateTexture(unsigned char* textureData, int texWidth, int texHeight)
+DreamPointer *DreamDX11Graphics::GenerateTexture(unsigned char *textureData, int texWidth, int texHeight)
 {
 	return nullptr;
 }
 
-void DreamDX11Graphics::UpdateBufferData(DreamBuffer* buffer, void* bufferData, size_t bufSize, VertexDataUsage dataUsage)
+void DreamDX11Graphics::UpdateBufferData(DreamBuffer *buffer, void *bufferData, size_t bufSize, VertexDataUsage dataUsage)
 {
-	ID3D11Buffer* buff = (ID3D11Buffer*)buffer->GetBufferPointer().GetStoredPointer();
+	ID3D11Buffer *buff = (ID3D11Buffer *)buffer->GetBufferPointer().GetStoredPointer();
 	context->UpdateSubresource(buff, 0, 0, bufferData, bufSize, 0);
 }
 
-
-//void DreamDX11Graphics::BindVertexLayout(DreamBuffer* layout)
+// void DreamDX11Graphics::BindVertexLayout(DreamBuffer* layout)
 //{
 //	context->IASetInputLayout((ID3D11InputLayout*)layout->GetBufferPointer().GetStoredPointer());
-//}
+// }
 
-void DreamDX11Graphics::BindBuffer(BufferType type, DreamBuffer* buffer)
+void DreamDX11Graphics::BindBuffer(BufferType type, DreamBuffer *buffer)
 {
-	ID3D11Buffer* buff = (ID3D11Buffer*)buffer->GetBufferPointer().GetStoredPointer();
-	switch (type) {
-	case BufferType::ArrayBuffer: {
+	ID3D11Buffer *buff = (ID3D11Buffer *)buffer->GetBufferPointer().GetStoredPointer();
+	switch (type)
+	{
+	case BufferType::ArrayBuffer:
+	{
 		context->IASetVertexBuffers(0,
-			buffer->GetNumOfBuffers(),
-			&buff,
-			(const UINT*)buffer->GetBufferStrides(),
-			(const UINT*)buffer->GetBufferOffsets());
+									buffer->GetNumOfBuffers(),
+									&buff,
+									(const UINT *)buffer->GetBufferStrides(),
+									(const UINT *)buffer->GetBufferOffsets());
 		break;
 	}
-	case BufferType::ElementArrayBuffer: {
+	case BufferType::ElementArrayBuffer:
+	{
 		context->IASetIndexBuffer(buff, DXGI_FORMAT_R32_UINT, 0);
 		break;
 	}
 	}
 }
-void DreamDX11Graphics::BindTexture(DreamTexture* texture, int bindingPoint)
+void DreamDX11Graphics::BindTexture(DreamTexture *texture, int bindingPoint)
 {
 }
-void DreamDX11Graphics::BindUniformBuffer(ShaderType shaderType, DreamBuffer* buffer, unsigned int slotNum) {
-	ID3D11Buffer* buff = (ID3D11Buffer*)buffer->GetBufferPointer().GetStoredPointer();
+void DreamDX11Graphics::BindUniformBuffer(ShaderType shaderType, DreamBuffer *buffer, unsigned int slotNum)
+{
+	ID3D11Buffer *buff = (ID3D11Buffer *)buffer->GetBufferPointer().GetStoredPointer();
 	unsigned int numOfBuffers = buffer->GetNumOfBuffers();
-	switch (shaderType) {
-	case ShaderType::VertexShader: {
+	switch (shaderType)
+	{
+	case ShaderType::VertexShader:
+	{
 		context->VSSetConstantBuffers(slotNum, numOfBuffers, &buff);
 		break;
 	}
-	case ShaderType::PixelShader: {
+	case ShaderType::PixelShader:
+	{
 		context->PSSetConstantBuffers(slotNum, numOfBuffers, &buff);
 		break;
 	}
-	case ShaderType::GeometryShader: {
+	case ShaderType::GeometryShader:
+	{
 		context->GSSetConstantBuffers(slotNum, numOfBuffers, &buff);
 		break;
 	}
-	case ShaderType::TessalationShader: {
-		//context->VSSetConstantBuffers(slotNum, numOfBuffers, &buff);
+	case ShaderType::TessalationShader:
+	{
+		// context->VSSetConstantBuffers(slotNum, numOfBuffers, &buff);
 		break;
 	}
-	case ShaderType::ComputeShader: {
+	case ShaderType::ComputeShader:
+	{
 		context->CSSetConstantBuffers(slotNum, numOfBuffers, &buff);
 		break;
 	}
 	}
 }
 
-ID3DBlob* shaderBlob;
+ID3DBlob *shaderBlob;
 
 bool layoutStarted = false;
 std::vector<D3D11_INPUT_ELEMENT_DESC> vertDesc;
@@ -489,70 +529,79 @@ size_t vertexStrideCount = 0;
 
 void DreamDX11Graphics::BeginVertexLayout()
 {
-	if (layoutStarted) {
+	if (layoutStarted)
+	{
 		printf("ERROR: Vertex Layout creation process has started already!\nCall FinalizeVertexLayout to end the current operation and start a new one");
 	}
-	else {
+	else
+	{
 		layoutStarted = true;
 	}
-
 }
 
 void DreamDX11Graphics::AddVertexLayoutData(std::string dataName, int size, unsigned int location, bool shouldNormalize, unsigned int sizeOf)
 {
-	if (layoutStarted) {
+	if (layoutStarted)
+	{
 
 		size_t format = -1;
 
-		switch (size) {
-		case 2: {
+		switch (size)
+		{
+		case 2:
+		{
 			format = DXGI_FORMAT_R32G32_FLOAT;
 			break;
 		}
-		case 3: {
+		case 3:
+		{
 			format = DXGI_FORMAT_R32G32B32_FLOAT;
 			break;
 		}
-		case 4: {
+		case 4:
+		{
 			format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 			break;
 		}
 		}
-		//D3D11_APPEND_ALIGNED_ELEMENT;
-		vertDesc.push_back({"", location, (DXGI_FORMAT)format, 0, (const UINT)vertexStrideCount, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+		// D3D11_APPEND_ALIGNED_ELEMENT;
+		vertDesc.push_back({"", location, (DXGI_FORMAT)format, 0, (const UINT)vertexStrideCount, D3D11_INPUT_PER_VERTEX_DATA, 0});
 
 		vertDesc[vertDesc.size() - 1].SemanticName = new char[dataName.size() + 1];
-		memcpy((void*)(vertDesc[vertDesc.size() - 1].SemanticName), dataName.c_str(), sizeof(char) * (dataName.size() + 1));
+		memcpy((void *)(vertDesc[vertDesc.size() - 1].SemanticName), dataName.c_str(), sizeof(char) * (dataName.size() + 1));
 
 		vertexStrideCount += sizeOf;
 	}
-	else {
+	else
+	{
 		printf("ERROR: No Vertex Layout creation process has started! Can't Add Data");
 	}
 }
 
-DreamPointer* DreamDX11Graphics::FinalizeVertexLayout()
+DreamPointer *DreamDX11Graphics::FinalizeVertexLayout()
 {
-	if (layoutStarted && shaderBlob) {
-		ID3D11InputLayout* vInputLayout;
+	if (layoutStarted && shaderBlob)
+	{
+		ID3D11InputLayout *vInputLayout;
 
-		//ID3D11ShaderReflection* refl;
-		//D3DReflect(
+		// ID3D11ShaderReflection* refl;
+		// D3DReflect(
 		//	shaderBlob->GetBufferPointer(),
 		//	shaderBlob->GetBufferSize(),
 		//	IID_ID3D11ShaderReflection,
 		//	(void**)&refl);
 
 		//// Get shader info
-		//D3D11_SHADER_DESC shaderDesc;
-		//refl->GetDesc(&shaderDesc);
+		// D3D11_SHADER_DESC shaderDesc;
+		// refl->GetDesc(&shaderDesc);
 
-		const void* blobPtr = shaderBlob->GetBufferPointer();
+		const void *blobPtr = shaderBlob->GetBufferPointer();
 		size_t blobSize = shaderBlob->GetBufferSize();
 
 		HRESULT result = device->CreateInputLayout(&vertDesc[0], vertDesc.size(), blobPtr, blobSize, &vInputLayout);
 
-		if (result != S_OK) {
+		if (result != S_OK)
+		{
 			printf("ERROR: Could not create Input Layout!");
 		}
 
@@ -563,7 +612,8 @@ DreamPointer* DreamDX11Graphics::FinalizeVertexLayout()
 
 		return new DreamPointer(vInputLayout);
 	}
-	else {
+	else
+	{
 		printf("ERROR: No Vertex Layout creation process has started! Can't Finalize Data");
 	}
 
@@ -572,25 +622,26 @@ DreamPointer* DreamDX11Graphics::FinalizeVertexLayout()
 
 void DreamDX11Graphics::UnBindBuffer(BufferType type)
 {
-	switch (type) {
-	case BufferType::ArrayBuffer: {
+	switch (type)
+	{
+	case BufferType::ArrayBuffer:
+	{
 		break;
 	}
-	case BufferType::ElementArrayBuffer: {
+	case BufferType::ElementArrayBuffer:
+	{
 		break;
 	}
 	}
 }
 
-
-DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shaderType)
+DreamShader *DreamDX11Graphics::LoadShader(const wchar_t *file, ShaderType shaderType)
 {
 
 #pragma region ShaderReflection
-	DreamShader* shader = nullptr;
+	DreamShader *shader = nullptr;
 	bool hasMat = false;
 	DreamShaderResources resources;
-
 
 	//  Loading SpirV shader file
 	std::wstring wfile = L"";
@@ -601,15 +652,14 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 	spirv_Path.append(convertFile);
 	spirv_Path.append(".spv");
 
-
 	DreamFileIO::OpenFileRead(spirv_Path.c_str(), std::ios::ate | std::ios::binary);
 
-	char* shaderCode = nullptr;
+	char *shaderCode = nullptr;
 	size_t length;
 	DreamFileIO::ReadFullFileQuick(&shaderCode, length);
 	DreamFileIO::CloseFileRead();
 
-	uint32_t* code = reinterpret_cast<uint32_t*>(shaderCode);
+	uint32_t *code = reinterpret_cast<uint32_t *>(shaderCode);
 	// Read SPIR-V from disk or similar.
 	std::vector<uint32_t> spirv_binary;
 	spirv_cross::CompilerHLSL hlsl(code, length / sizeof(uint32_t));
@@ -617,29 +667,35 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 	LoadShaderResources(hlsl, resources, hasMat);
 
 	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-	#if defined( DEBUG ) || defined( _DEBUG )
+#if defined(DEBUG) || defined(_DEBUG)
 	flags |= D3DCOMPILE_DEBUG;
-	#endif
+#endif
 
 	std::string version = "";
-	switch (shaderType) {
-	case ShaderType::VertexShader: {
+	switch (shaderType)
+	{
+	case ShaderType::VertexShader:
+	{
 		version = "vs";
 		break;
 	}
-	case ShaderType::PixelShader: {
+	case ShaderType::PixelShader:
+	{
 		version = "ps";
 		break;
 	}
-	case ShaderType::GeometryShader: {
+	case ShaderType::GeometryShader:
+	{
 		version = "gs";
 		break;
 	}
-	case ShaderType::TessalationShader: { // TODO: tessalation is Domain and Hull shaders... break into seperate enums
-		//version = "vs";
+	case ShaderType::TessalationShader:
+	{ // TODO: tessalation is Domain and Hull shaders... break into seperate enums
+		// version = "vs";
 		break;
 	}
-	case ShaderType::ComputeShader: {
+	case ShaderType::ComputeShader:
+	{
 		version = "cs";
 		break;
 	}
@@ -652,7 +708,7 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 	options.shader_model = 50;
 	hlsl.set_hlsl_options(options);
 
-	//Compiling Shader
+	// Compiling Shader
 	std::string source = hlsl.compile();
 	HRESULT hr = D3DCompile(source.c_str(), source.size(), nullptr, nullptr, nullptr, "main", version.c_str(), flags, 0, &shaderBlob, nullptr);
 	if (hr != S_OK)
@@ -662,16 +718,16 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 #pragma endregion
 
 #pragma region ShaderCompiling
-	//std::string outputDir = OUTPUT_DIR;
-	//std::wstring path(outputDir.begin(), outputDir.end());
-	//path.append(wfile);
-	//path.append(L".cso");
+	// std::string outputDir = OUTPUT_DIR;
+	// std::wstring path(outputDir.begin(), outputDir.end());
+	// path.append(wfile);
+	// path.append(L".cso");
 	//
-	//HRESULT hr = D3DReadFileToBlob(path.c_str(), &shaderBlob);
-	//if (hr != S_OK)
+	// HRESULT hr = D3DReadFileToBlob(path.c_str(), &shaderBlob);
+	// if (hr != S_OK)
 	//{
 	//	printf("Failed to open/read Shader file");
-	//}
+	// }
 
 	// Create the shader - Calls an overloaded version of this abstract
 	// method in the appropriate child class
@@ -681,12 +737,14 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 	void* stuff3 = &vShader;*/
 	HRESULT result;
 
-	void* blobPtr = shaderBlob->GetBufferPointer();
+	void *blobPtr = shaderBlob->GetBufferPointer();
 	size_t blobSize = shaderBlob->GetBufferSize();
 
-	switch (shaderType) {
-	case ShaderType::VertexShader: {
-		ID3D11VertexShader* newShader;
+	switch (shaderType)
+	{
+	case ShaderType::VertexShader:
+	{
+		ID3D11VertexShader *newShader;
 		result = device->CreateVertexShader(
 			blobPtr,
 			blobSize,
@@ -695,8 +753,9 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 		shader = new DreamShader(shaderType, DreamPointer(newShader), resources, hasMat);
 		break;
 	}
-	case ShaderType::PixelShader: {
-		ID3D11PixelShader* newShader;
+	case ShaderType::PixelShader:
+	{
+		ID3D11PixelShader *newShader;
 		result = device->CreatePixelShader(
 			blobPtr,
 			blobSize,
@@ -705,8 +764,9 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 		shader = new DreamShader(shaderType, DreamPointer(newShader), resources, hasMat);
 		break;
 	}
-	case ShaderType::GeometryShader: {
-		ID3D11GeometryShader* newShader;
+	case ShaderType::GeometryShader:
+	{
+		ID3D11GeometryShader *newShader;
 		result = device->CreateGeometryShader(
 			blobPtr,
 			blobSize,
@@ -715,8 +775,9 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 		shader = new DreamShader(shaderType, DreamPointer(newShader), resources, hasMat);
 		break;
 	}
-	case ShaderType::ComputeShader: {
-		ID3D11ComputeShader* newShader;
+	case ShaderType::ComputeShader:
+	{
+		ID3D11ComputeShader *newShader;
 		result = device->CreateComputeShader(
 			blobPtr,
 			blobSize,
@@ -727,50 +788,57 @@ DreamShader* DreamDX11Graphics::LoadShader(const wchar_t* file, ShaderType shade
 		break;
 	}
 	}
-	 
 
 	if (result != S_OK)
 	{
 		printf("Failed to create Shader");
 	}
 
-	if (shaderType != ShaderType::VertexShader) {
+	if (shaderType != ShaderType::VertexShader)
+	{
 		shaderBlob->Release();
 	}
 #pragma endregion
 
-	if (shaderType == VertexShader) {
+	if (shaderType == VertexShader)
+	{
 		shader->CreateVertexInputLayout();
 	}
 	return shader;
 }
 
-void DreamDX11Graphics::ReleaseShader(DreamShader* shader)
+void DreamDX11Graphics::ReleaseShader(DreamShader *shader)
 {
-	const void* ptr = shader->GetShaderPtr().GetStoredPointer();
+	const void *ptr = shader->GetShaderPtr().GetStoredPointer();
 
-	if (ptr) {
-		switch (shader->GetShaderType()) {
-		case ShaderType::VertexShader: {
-			ID3D11VertexShader* vShader = (ID3D11VertexShader*)ptr;
+	if (ptr)
+	{
+		switch (shader->GetShaderType())
+		{
+		case ShaderType::VertexShader:
+		{
+			ID3D11VertexShader *vShader = (ID3D11VertexShader *)ptr;
 			vShader->Release();
 			vShader = nullptr;
 			break;
 		}
-		case ShaderType::PixelShader: {
-			ID3D11PixelShader* pShader = (ID3D11PixelShader*)ptr;
+		case ShaderType::PixelShader:
+		{
+			ID3D11PixelShader *pShader = (ID3D11PixelShader *)ptr;
 			pShader->Release();
 			pShader = nullptr;
 			break;
 		}
-		case ShaderType::GeometryShader: {
-			ID3D11GeometryShader* gShader = (ID3D11GeometryShader*)ptr;
+		case ShaderType::GeometryShader:
+		{
+			ID3D11GeometryShader *gShader = (ID3D11GeometryShader *)ptr;
 			gShader->Release();
 			gShader = nullptr;
 			break;
 		}
-		case ShaderType::ComputeShader: {
-			ID3D11ComputeShader* cShader = (ID3D11ComputeShader*)ptr;
+		case ShaderType::ComputeShader:
+		{
+			ID3D11ComputeShader *cShader = (ID3D11ComputeShader *)ptr;
 			cShader->Release();
 			cShader = nullptr;
 			break;
@@ -779,32 +847,36 @@ void DreamDX11Graphics::ReleaseShader(DreamShader* shader)
 	}
 }
 
-void DreamDX11Graphics::SetShader(DreamShader* shader)
+void DreamDX11Graphics::SetShader(DreamShader *shader)
 {
-	
-	switch (shader->GetShaderType()) {
-	case ShaderType::VertexShader: {
-		ID3D11VertexShader* vPtr = (ID3D11VertexShader*)shader->GetShaderPtr().GetStoredPointer();
+
+	switch (shader->GetShaderType())
+	{
+	case ShaderType::VertexShader:
+	{
+		ID3D11VertexShader *vPtr = (ID3D11VertexShader *)shader->GetShaderPtr().GetStoredPointer();
 		context->VSSetShader(vPtr, 0, 0);
 		break;
 	}
-	case ShaderType::PixelShader: {
-		ID3D11PixelShader* pPtr = (ID3D11PixelShader*)shader->GetShaderPtr().GetStoredPointer();
+	case ShaderType::PixelShader:
+	{
+		ID3D11PixelShader *pPtr = (ID3D11PixelShader *)shader->GetShaderPtr().GetStoredPointer();
 		context->PSSetShader(pPtr, 0, 0);
 		break;
 	}
-	case ShaderType::GeometryShader: {
-		ID3D11GeometryShader* gPtr = (ID3D11GeometryShader*)shader->GetShaderPtr().GetStoredPointer();
+	case ShaderType::GeometryShader:
+	{
+		ID3D11GeometryShader *gPtr = (ID3D11GeometryShader *)shader->GetShaderPtr().GetStoredPointer();
 		context->GSSetShader(gPtr, 0, 0);
 		break;
 	}
-	case ShaderType::ComputeShader: {
-		ID3D11ComputeShader* cPtr = (ID3D11ComputeShader*)shader->GetShaderPtr().GetStoredPointer();
+	case ShaderType::ComputeShader:
+	{
+		ID3D11ComputeShader *cPtr = (ID3D11ComputeShader *)shader->GetShaderPtr().GetStoredPointer();
 		context->CSSetShader(cPtr, 0, 0);
 		break;
 	}
 	}
-	
 }
 
 void DreamDX11Graphics::DrawWithIndex(size_t size)
@@ -821,47 +893,46 @@ void DreamDX11Graphics::DrawWithVertex(size_t size)
 
 void DreamDX11Graphics::Draw()
 {
-	//D3D11_MAPPED_SUBRESOURCE mapped = {};
-	//context->Map(instanceWorldMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	// D3D11_MAPPED_SUBRESOURCE mapped = {};
+	// context->Map(instanceWorldMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 
 	//// Copy to the resource
 
-
-	//memcpy(mapped.pData, components, sizeof(InstanceData) * numInstances);
+	// memcpy(mapped.pData, components, sizeof(InstanceData) * numInstances);
 
 	//// Unmap so the GPU can use it again
-	//context->Unmap(instanceWorldMatrixBuffer, 0);
+	// context->Unmap(instanceWorldMatrixBuffer, 0);
 
-	//ID3D11Buffer* vbs[2] = {
+	// ID3D11Buffer* vbs[2] = {
 	//	assets->meshStorage[meshName]->vertArr,	// Per-vertex data
 	//	instanceWorldMatrixBuffer			// Per-instance data
-	//};
+	// };
 
 	//// Two buffers means two strides and two offsets!
-	//UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
-	//UINT offsets[2] = { 0, 0 };
+	// UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
+	// UINT offsets[2] = { 0, 0 };
 
 	//// Set both vertex buffers
-	//context->IASetVertexBuffers(0, 2, vbs, strides, offsets);
-	//context->IASetIndexBuffer(assets->meshStorage[meshName]->indArr, DXGI_FORMAT_R32_UINT, 0);
+	// context->IASetVertexBuffers(0, 2, vbs, strides, offsets);
+	// context->IASetIndexBuffer(assets->meshStorage[meshName]->indArr, DXGI_FORMAT_R32_UINT, 0);
 
-	//instanceFVShader->SetMatrix4x4("view", cam->viewMatrix);
-	//instanceFVShader->SetMatrix4x4("projection", cam->projectionMatrix);
+	// instanceFVShader->SetMatrix4x4("view", cam->viewMatrix);
+	// instanceFVShader->SetMatrix4x4("projection", cam->projectionMatrix);
 
-	//instanceFVShader->SetFloat3("camPosition", cam->transform.position);
+	// instanceFVShader->SetFloat3("camPosition", cam->transform.position);
 
-	//instanceFVShader->CopyAllBufferData();
+	// instanceFVShader->CopyAllBufferData();
 
-	//SetLights(pixelFShader);
-	//pixelFShader->SetSamplerState("basicSampler", textureSample);
-	//pixelFShader->SetShaderResourceView("skyTexture", skyBoxSVR);
-	//pixelFShader->SetFloat("reflectance", 0.0f);
-	//pixelFShader->CopyAllBufferData();
+	// SetLights(pixelFShader);
+	// pixelFShader->SetSamplerState("basicSampler", textureSample);
+	// pixelFShader->SetShaderResourceView("skyTexture", skyBoxSVR);
+	// pixelFShader->SetFloat("reflectance", 0.0f);
+	// pixelFShader->CopyAllBufferData();
 
-	//instanceFVShader->SetShader();
-	//pixelFShader->SetShader();
+	// instanceFVShader->SetShader();
+	// pixelFShader->SetShader();
 
-	//context->DrawIndexedInstanced(
+	// context->DrawIndexedInstanced(
 	//	assets->meshStorage[meshName]->indCount, // Number of indices from index buffer
 	//	count,					// Number of instances to actually draw
 	//	0, 0, 0);
@@ -876,10 +947,11 @@ void DreamDX11Graphics::DestroyWindow()
 	PostMessage(this->hWnd, WM_CLOSE, NULL, NULL);
 }
 
-void DreamDX11Graphics::DestroyBuffer(DreamBuffer* buffer)
+void DreamDX11Graphics::DestroyBuffer(DreamBuffer *buffer)
 {
-	if (buffer) {
-		ID3D11Buffer* dxBuffer = (ID3D11Buffer*)buffer->GetBufferPointer().GetStoredPointer();
+	if (buffer)
+	{
+		ID3D11Buffer *dxBuffer = (ID3D11Buffer *)buffer->GetBufferPointer().GetStoredPointer();
 		dxBuffer->Release();
 
 		delete buffer;
@@ -895,8 +967,7 @@ void DreamDX11Graphics::DestroyBuffer(DreamBuffer* buffer)
 // --------------------------------------------------------
 LRESULT DreamDX11Graphics::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	//ImGuiIO& IO = ImGui::GetIO();
-
+	// ImGuiIO& IO = ImGui::GetIO();
 
 	// Check the incoming message and handle any we care about
 	switch (uMsg)
@@ -912,88 +983,85 @@ LRESULT DreamDX11Graphics::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 		// Prevent the overall window from becoming too small
 	case WM_GETMINMAXINFO:
-		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
-		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		((MINMAXINFO *)lParam)->ptMinTrackSize.x = 200;
+		((MINMAXINFO *)lParam)->ptMinTrackSize.y = 200;
 		return 0;
 
 		// Sent when the window size changes
 	case WM_SIZE:
 		// Save the new client area dimensions.
-		//width = LOWORD(lParam);
-		//height = HIWORD(lParam);
+		// width = LOWORD(lParam);
+		// height = HIWORD(lParam);
 
-		// If DX is initialized, resize 
+		// If DX is initialized, resize
 		// our required buffers
 		if (device)
-			SetViewPort(0,0, LOWORD(lParam), HIWORD(lParam));
+			SetViewPort(0, 0, LOWORD(lParam), HIWORD(lParam));
 
 		return 0;
 
 		// Mouse button being pressed (while the cursor is currently over our window)
 	case WM_LBUTTONDOWN:
-		//IO.MouseDown[0] = true;
-		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[0] = true;
+		// OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_MBUTTONDOWN:
-		//IO.MouseDown[2] = true;
-		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[2] = true;
+		// OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_RBUTTONDOWN:
-		//IO.MouseDown[1] = true;
-		//OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[1] = true;
+		// OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
-
 
 		// Mouse button being released (while the cursor is currently over our window)
 	case WM_LBUTTONUP:
-		//IO.MouseDown[0] = false;
-		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[0] = false;
+		// OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_MBUTTONUP:
-		//IO.MouseDown[2] = false;
-		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[2] = false;
+		// OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_RBUTTONUP:
-		//IO.MouseDown[1] = false;
-		//OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// IO.MouseDown[1] = false;
+		// OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		// Cursor moves over the window (or outside, while we're currently capturing it)
 	case WM_MOUSEMOVE:
-		//IO.MousePos = ImVec2(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		//OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), deltaTime);
+		// IO.MousePos = ImVec2(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), deltaTime);
 		return 0;
 
 		// Mouse wheel is scrolled
 	case WM_MOUSEWHEEL:
-		//OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		// OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		if (wParam < 256)
-			//IO.KeysDown[wParam] = 1;
-		return 0;
+			// IO.KeysDown[wParam] = 1;
+			return 0;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		if (wParam < 256)
-			//IO.KeysDown[wParam] = 0;
-		return 0;
+			// IO.KeysDown[wParam] = 0;
+			return 0;
 	case WM_CHAR:
 		if (wParam > 0 && wParam < 0x10000)
-			//IO.AddInputCharacter((unsigned short)wParam);
-		return 0;
+			// IO.AddInputCharacter((unsigned short)wParam);
+			return 0;
 	}
-
-
 
 	// Let Windows handle any messages we're not touching
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-void DreamDX11Graphics::BindVertexLayout(DreamBuffer* layout)
+void DreamDX11Graphics::BindVertexLayout(DreamBuffer *layout)
 {
-	context->IASetInputLayout((ID3D11InputLayout*)layout->GetBufferPointer().GetStoredPointer());
+	context->IASetInputLayout((ID3D11InputLayout *)layout->GetBufferPointer().GetStoredPointer());
 }
 
 void DreamDX11Graphics::UnBindVertexLayout()
@@ -1009,7 +1077,7 @@ DreamDX11ShaderLinker::~DreamDX11ShaderLinker()
 {
 }
 
-void DreamDX11ShaderLinker::AttachShader(DreamShader* shader)
+void DreamDX11ShaderLinker::AttachShader(DreamShader *shader)
 {
 	linkedShaders.push_back(shader);
 }
@@ -1018,44 +1086,46 @@ void DreamDX11ShaderLinker::Finalize()
 {
 }
 
-void DreamDX11ShaderLinker::BindShaderLink(UniformIndexStore& indexStore)
+void DreamDX11ShaderLinker::BindShaderLink(UniformIndexStore &indexStore)
 {
-	DreamDX11Graphics* dxGraphics = (DreamDX11Graphics*)graphics;
+	DreamDX11Graphics *dxGraphics = (DreamDX11Graphics *)graphics;
 
-	for (size_t i = 0; i < linkedShaders.size(); i++) {
-		if (linkedShaders[i]->GetShaderType() == VertexShader) {
-			DreamBuffer* layout = linkedShaders[i]->GetInputLayout();
-			if (layout) {
+	for (size_t i = 0; i < linkedShaders.size(); i++)
+	{
+		if (linkedShaders[i]->GetShaderType() == VertexShader)
+		{
+			DreamBuffer *layout = linkedShaders[i]->GetInputLayout();
+			if (layout)
+			{
 				dxGraphics->BindVertexLayout(layout);
 			}
-			else {
+			else
+			{
 				printf("Vertex Input lLayout didnt exsist!");
 			}
 		}
 
-		for (auto& uniformData : linkedShaders[i]->shaderResources.uniforms) {
+		for (auto &uniformData : linkedShaders[i]->shaderResources.uniforms)
+		{
 
-			if (uniformData.second.buffers.size() > 0) {
+			if (uniformData.second.buffers.size() > 0)
+			{
 				uint32_t frameIndex = DreamGraphics::GetInstance()->currentFrame;
 				uint32_t maxFramesInFlight = DreamGraphics::GetInstance()->GetMaxFramesInFlight();
 				int index = (indexStore[uniformData.first] * maxFramesInFlight) + frameIndex;
 
-
-				DreamBuffer* buffer = uniformData.second.buffers[index];
+				DreamBuffer *buffer = uniformData.second.buffers[index];
 				std::string name = uniformData.first;
 				unsigned int bindPoint = bindingPoints[name];
 				unsigned int bindIndex = uniformData.second.bindingIndex;
 
-
 				dxGraphics->BindUniformBuffer(linkedShaders[i]->GetShaderType(), buffer, bindIndex);
 
-				if (name != "ConstantData") {
-
+				if (name != "ConstantData")
+				{
 				}
 			}
 		}
-
-
 
 		linkedShaders[i]->BindShaderData();
 		dxGraphics->SetShader(linkedShaders[i]);
@@ -1066,7 +1136,7 @@ void DreamDX11ShaderLinker::UnBindShaderLink()
 {
 }
 
-DreamDX11VertexArray::DreamDX11VertexArray(DreamBuffer* vert, DreamBuffer* ind) : DreamVertexArray(vert, ind)
+DreamDX11VertexArray::DreamDX11VertexArray(DreamBuffer *vert, DreamBuffer *ind) : DreamVertexArray(vert, ind)
 {
 }
 
@@ -1078,7 +1148,8 @@ DreamDX11VertexArray::~DreamDX11VertexArray()
 void DreamDX11VertexArray::Bind()
 {
 	graphics->BindBuffer(ArrayBuffer, vertexBuffer);
-	if (indexBuffer) {
+	if (indexBuffer)
+	{
 		graphics->BindBuffer(ElementArrayBuffer, indexBuffer);
 	}
 }
@@ -1087,3 +1158,5 @@ void DreamDX11VertexArray::UnBind()
 	graphics->UnBindBuffer(ArrayBuffer);
 	graphics->UnBindBuffer(ElementArrayBuffer);
 }
+
+#endif

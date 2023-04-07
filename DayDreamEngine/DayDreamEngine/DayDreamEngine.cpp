@@ -7,31 +7,37 @@
 #include <DreamFileIO.h>
 #include <DreamUnitTest.h>
 #include <DreamTimeManager.h>
+#ifdef WINDOWS
 #include <Windows.h>
+#endif
 #include "DreamCameraManager.h"
 #include "DreamMaterial.h"
 #include "DreamTexture.h"
 
-void UnitTestFileIO() {
-
+void UnitTestFileIO()
+{
+	printf("UnitTestFileIO:\n");
 	std::string testLines[]{
-	"Yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahh",
-	"Yoooooooo",
-	"Yaeeeeeeeeeee",
-	"Yweeeeeeeeeeeeeee",
+		"Yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahh",
+		"Yoooooooo",
+		"Yaeeeeeeeeeee",
+		"Yweeeeeeeeeeeeeee",
 	};
 
 	DreamFileIO::OpenFileWrite("word.txt", FileWriteType::OverWrite);
 
-	for (int i = 0; i < sizeof(testLines) / sizeof(std::string); i++) {
+	for (int i = 0; i < sizeof(testLines) / sizeof(std::string); i++)
+	{
 		DreamFileIO::WriteLine(testLines[i].c_str());
 	}
 	DreamFileIO::CloseFileWrite();
 
-	if (DreamFileIO::OpenFileRead("word.txt")) {
+	if (DreamFileIO::OpenFileRead("word.txt"))
+	{
 		int i = 0;
 		std::string line;
-		while (DreamFileIO::ReadLine(line)) {
+		while (DreamFileIO::ReadLine(line))
+		{
 
 			assert(line == testLines[i]);
 			printf("%s\n", line.c_str());
@@ -41,8 +47,9 @@ void UnitTestFileIO() {
 	}
 }
 
-void UnitTestMath() {
-
+void UnitTestMath()
+{
+	printf("UnitTestMath:\n");
 	DreamUnitTest::PrintUnitTestRunName("MATH TEST");
 
 	float num = 89.0f; // result: 0.86006940581
@@ -64,19 +71,28 @@ void UnitTestMath() {
 	assert(tanResult == tanCalc);
 }
 
-void UnitTestAllocators() {
+void UnitTestAllocators()
+{
+	printf("UnitTestAllocators:\n");
 	DreamAllocatorManager::InitMainStackAllocator();
-	DreamMath::DreamVector3* newPosition = DreamAllocatorManager::AllocateOnMainSA<DreamMath::DreamVector3>();
+	DreamMath::DreamVector3 *newPosition = DreamAllocatorManager::AllocateOnMainSA<DreamMath::DreamVector3>();
 
 	printf("x: %f, y: %f, z: %f\n", newPosition->x, newPosition->y, newPosition->z);
 
+	printf("\nShutting down main stack allocator...\n");
 	DreamAllocatorManager::ShutDownMainStackAllocator();
+	printf("Finishing shutting down main stack allocator\n");
 }
 
-void UnitTest() {
+void UnitTest()
+{
+	printf("UnitTest:\n");
 	UnitTestFileIO();
+	printf("\n");
 	UnitTestMath();
+	printf("\n");
 	UnitTestAllocators();
+	printf("\n");
 }
 
 // NOTE: Dont run on a Samsung Fridge
@@ -84,35 +100,46 @@ int main()
 {
 	UnitTest();
 
-	DreamGraphics* graphics = DreamGraphics::GetInstance();
+	printf("DreamGraphics::GetInstance()\n");
+	DreamGraphics *graphics = DreamGraphics::GetInstance();
 
-	graphics->InitWindow(800, 600, "Hey It's a window!");
+	printf("graphics->InitWindow()\n");
+	graphics->InitWindow(1600, 900, "MIKEY WHY IS IT SO SMALL?");
+	printf("graphics->InitGraphics()\n");
 	graphics->InitGraphics();
+	printf("graphics->InitConstData()\n");
 	graphics->InitConstData();
+	printf("graphics->SetScreenClearColor()\n");
 	graphics->SetScreenClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	printf("graphics->SetViewPort()\n");
+	// graphics->SetViewPort(0,0, 200, 200); // TODO: doesnt work halp ;-;
 
-	//graphics->SetViewPort(0,0, 200, 200); // TODO: doesnt work halp ;-;
+	printf("graphics->LoadShader(vertex)\n");
+	DreamShader *vertexShader = graphics->LoadShader(L"vertex", ShaderType::VertexShader);
+	printf("graphics->LoadShader(pixel)\n");
+	DreamShader *pixelShader = graphics->LoadShader(L"pixel", ShaderType::PixelShader);
+	printf("graphics->LoadShader(Texture_vertex)\n");
+	DreamShader *textureVertexShader = graphics->LoadShader(L"Texture_vertex", ShaderType::VertexShader);
+	printf("graphics->LoadShader(Texture_pixel)\n");
+	DreamShader *texturePixelShader = graphics->LoadShader(L"Texture_pixel", ShaderType::PixelShader);
 
-	DreamShader* vertexShader = graphics->LoadShader(L"vertex", ShaderType::VertexShader);
-	DreamShader* pixelShader = graphics->LoadShader(L"pixel", ShaderType::PixelShader);
-	DreamShader* textureVertexShader = graphics->LoadShader(L"Texture_vertex", ShaderType::VertexShader);
-	DreamShader* texturePixelShader = graphics->LoadShader(L"Texture_pixel", ShaderType::PixelShader);
-
-	DreamShaderLinker* defaultLinker = DreamGraphics::GenerateShaderLinker();
+	printf("DreamGraphics::GenerateShaderLinker()\n");
+	DreamShaderLinker *defaultLinker = DreamGraphics::GenerateShaderLinker();
 	defaultLinker->AttachShader(vertexShader);
 	defaultLinker->AttachShader(pixelShader);
 	defaultLinker->Finalize();
 
-	DreamShaderLinker* textureLinker = DreamGraphics::GenerateShaderLinker();
+	DreamShaderLinker *textureLinker = DreamGraphics::GenerateShaderLinker();
 	textureLinker->AttachShader(textureVertexShader);
 	textureLinker->AttachShader(texturePixelShader);
 	textureLinker->Finalize();
 
-	DreamTexture* texture = new DreamTexture("Textures/HUH.jpg");
-	DreamTexture* frenchFriesTexture = new DreamTexture("Textures/FrenchFries.jpg");
+	DreamTexture *texture = new DreamTexture("Textures/HUH.jpg");
+	printf("huh.jpg: %x\n", texture);
+	DreamTexture *frenchFriesTexture = new DreamTexture("Textures/FrenchFries.jpg");
 
-	DreamMaterial* defaultMat = new DreamMaterial(defaultLinker);
-	DreamMaterial* TextureMat = new DreamMaterial(textureLinker);
+	DreamMaterial *defaultMat = new DreamMaterial(defaultLinker);
+	DreamMaterial *TextureMat = new DreamMaterial(textureLinker);
 	TextureMat->StoreTexture("texSampler", texture);
 
 	std::vector<uint32_t> indices = std::vector<uint32_t>();
@@ -162,16 +189,16 @@ int main()
 	indices.push_back(1);
 	indices.push_back(3);
 
-	DreamMesh* triangleMesh = new DreamMesh(vert2);
-	DreamMesh* parallogramMesh = new DreamMesh(vert, indices);
+	DreamMesh *triangleMesh = new DreamMesh(vert2);
+	DreamMesh *parallogramMesh = new DreamMesh(vert, indices);
 
-	DreamMesh* squareMesh = new DreamMesh(vert3_Index, indices);
-	//DreamMesh* squareMesh = new DreamMesh(vert3_Vert);
+	// DreamMesh* squareMesh = new DreamMesh(vert3_Index, indices);
+	DreamMesh *squareMesh = new DreamMesh(vert3_Vert);
 
-	std::vector<DreamGameObject*> objList;
-	DreamGameObject* triangleObj = new DreamGameObject(triangleMesh, defaultMat);
-	DreamGameObject* parallogramObj = new DreamGameObject(parallogramMesh, defaultMat);
-	DreamGameObject* squareObj = new DreamGameObject(squareMesh, TextureMat); // TODO: can't use same material on Vulkan Api
+	std::vector<DreamGameObject *> objList;
+	DreamGameObject *triangleObj = new DreamGameObject(triangleMesh, defaultMat);
+	DreamGameObject *parallogramObj = new DreamGameObject(parallogramMesh, defaultMat);
+	DreamGameObject *squareObj = new DreamGameObject(squareMesh, TextureMat); // TODO: can't use same material on Vulkan Api
 	objList.push_back(parallogramObj);
 	objList.push_back(triangleObj);
 	objList.push_back(squareObj);
@@ -180,18 +207,17 @@ int main()
 	squareObj->transform.position = DreamVector3(3, 0, -3);
 	squareObj->transform.Rotate(DreamVector3(0, 45, 0));
 
-
-	DreamCameraManager* camManager = DreamCameraManager::GetInstance();
-	DreamCamera* camera = new DreamCamera();
+	DreamCameraManager *camManager = DreamCameraManager::GetInstance();
+	DreamCamera *camera = new DreamCamera();
 	camManager->SetActiveCamera(camera);
 
 	DreamTimeManager::Init();
 	while (!graphics->CheckWindowClose())
 	{
 		DreamTimeManager::Update();
-		
+
 		// Controller
-		graphics->CheckInputs(); //TODO: needs to be on input manager
+		graphics->CheckInputs(); // TODO: needs to be on input manager
 
 		// Model
 		camera->Update();
@@ -200,10 +226,11 @@ int main()
 		graphics->ClearScreen();
 		graphics->Update();
 
-		//NOTE: there is a black line on the side of the drawn triangle, halp
-		// TODO: Bind Graphic pipelines instead of shaders individually
-		// TODO: Spirv-Cross to handle all shader platform types
-		for (unsigned int i = 0; i < objList.size(); i++) {
+		// NOTE: there is a black line on the side of the drawn triangle, halp
+		//  TODO: Bind Graphic pipelines instead of shaders individually
+		//  TODO: Spirv-Cross to handle all shader platform types
+		for (unsigned int i = 0; i < objList.size(); i++)
+		{
 			objList[i]->Draw();
 		}
 		graphics->Draw();
@@ -211,20 +238,24 @@ int main()
 		graphics->SwapBuffers();
 	}
 
-	for (unsigned int i = 0; i < objList.size(); i++) {
-		if (objList[i]) {
+	for (unsigned int i = 0; i < objList.size(); i++)
+	{
+		if (objList[i])
+		{
 			delete objList[i];
 			objList[i] = nullptr;
 		}
 		objList.clear();
 	}
 
-	if (triangleMesh) {
+	if (triangleMesh)
+	{
 		delete triangleMesh;
 		triangleMesh = nullptr;
 	}
 
-	if (parallogramMesh) {
+	if (parallogramMesh)
+	{
 		delete parallogramMesh;
 		parallogramMesh = nullptr;
 	}
@@ -235,7 +266,8 @@ int main()
 	graphics->DestroyWindow();
 	graphics->TerminateGraphics();
 
-	if (graphics) {
+	if (graphics)
+	{
 		delete graphics;
 		graphics = nullptr;
 	}

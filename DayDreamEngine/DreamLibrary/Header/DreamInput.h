@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include "DreamMath.h"
-#include "KeyCode.h"
-//#include<unordered_map>
+// #include "KeyCode.h"
+//  #include<unordered_map>
 
 namespace DreamInput
 {
@@ -27,7 +27,7 @@ namespace DreamInput
 		BUTTON_INTERCEPTED,
 	};
 
-	//std::unordered_map<char*, int> Actions;
+	// std::unordered_map<char*, int> Actions;
 
 	int Initialize();
 	void Update();

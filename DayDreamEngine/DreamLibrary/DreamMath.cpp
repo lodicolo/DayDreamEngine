@@ -2,73 +2,75 @@
 #include <pch.h>
 #include "DreamMath.h"
 
-
-
+#include <cmath>
 
 #ifdef WINDOWS
-
-#include<cmath>
+using namespace std;
+#endif
 
 float DreamMath::D_sin(float degrees)
-{	
-	return std::sinf(degrees * DEG2RAD);
+{
+	return sinf(degrees * DEG2RAD);
 }
 
 float DreamMath::D_cos(float degrees)
 {
-	return std::cosf(degrees * DEG2RAD);
+	return cosf(degrees * DEG2RAD);
 }
 
 float DreamMath::D_tan(float degrees)
 {
-	return std::tanf(degrees * DEG2RAD);
+	return tanf(degrees * DEG2RAD);
 }
 
 float DreamMath::D_asin(float num)
 {
-	if (num < -1 || num > 1) {
+	if (num < -1 || num > 1)
+	{
 		printf("Not a valid number...\n");
 		return -9999;
 	}
-	return std::asinf(num);
+	return asinf(num);
 }
 
 float DreamMath::D_acos(float num)
 {
-	if (num < -1 && num > 1) {
+	if (num < -1 && num > 1)
+	{
 		printf("Not a valid number...\n");
 		return -1;
 	}
-	return std::acosf(num);
+	return acosf(num);
 }
 
 float DreamMath::D_atan(float num)
 {
-	if (num < -1 && num > 1) {
+	if (num < -1 && num > 1)
+	{
 		printf("Not a valid number...\n");
 		return -1;
 	}
-	return std::atanf(num);
+	return atanf(num);
 }
 
 float DreamMath::D_abs(float num)
 {
-	return std::abs(num);
+	return abs(num);
 }
 
 float DreamMath::D_pow(float num, float exp)
 {
-	return std::powf(num, exp);
+	return powf(num, exp);
 }
 
 float DreamMath::D_floor(float a)
 {
-	return std::floorf(a);
+	return floorf(a);
 }
 
 float DreamMath::D_ceiling(float a)
 {
-	return std::ceilf(a);
+	return ceilf(a);
 }
 
 float DreamMath::D_rad2deg(float radians)
@@ -83,12 +85,12 @@ float DreamMath::D_deg2rad(float degrees)
 
 float DreamMath::D_sqrtf(float num)
 {
-	return std::sqrtf(num);
+	return sqrtf(num);
 }
 
 float DreamMath::D_truncf(float num)
 {
-	return std::truncf(num);
+	return truncf(num);
 }
 
 float DreamMath::D_round(float num, int decimal)
@@ -97,7 +99,7 @@ float DreamMath::D_round(float num, int decimal)
 
 	int store = (int)(num * decimalMove + .5f);
 
-	return ((float)store)/decimalMove;
+	return ((float)store) / decimalMove;
 }
 
 float DreamMath::D_lerp(float A, float B, float time)
@@ -105,11 +107,11 @@ float DreamMath::D_lerp(float A, float B, float time)
 	return ((1 - time) * A) + (time * B);
 }
 
-float DreamMath::Dot(float * vec1, float * vec2, int size )
+float DreamMath::Dot(float *vec1, float *vec2, int size)
 {
 	float dot = 0;
 
-	for(int i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		dot += vec1[i] * vec2[i];
 	}
@@ -120,7 +122,7 @@ float DreamMath::Dot(float * vec1, float * vec2, int size )
 float DreamMath::Dot(float vec1[], float vec2[])
 {
 	float dot = 0;
-	int size = (int) sizeof(vec1) / sizeof(float);
+	int size = (int)sizeof(vec1) / sizeof(float);
 
 	for (int i = 0; i < size; i++)
 	{
@@ -134,15 +136,15 @@ float DreamMath::FixFloatingPointError(float num)
 {
 	float returnNum = num;
 	float truncatedNum = truncf(returnNum);
-	if (DreamMath::D_abs(returnNum - truncatedNum) < EPSILON) {
+	if (DreamMath::D_abs(returnNum - truncatedNum) < EPSILON)
+	{
 		returnNum = truncatedNum;
 	}
 	return returnNum;
 }
 
-#endif
-
-DreamMath::DreamVector3 DreamMath::DreamVector3::operator* (DreamMath::DreamMatrix3X3 m) {
+DreamMath::DreamVector3 DreamMath::DreamVector3::operator*(DreamMath::DreamMatrix3X3 m)
+{
 	DreamVector3 newVec = DreamMath::DreamVector3();
 
 	newVec.x = (this->x * m.matrix.data[0][0]) + (this->y * m.matrix.data[1][0]) + (this->z * m.matrix.data[2][0]);
@@ -151,7 +153,8 @@ DreamMath::DreamVector3 DreamMath::DreamVector3::operator* (DreamMath::DreamMatr
 
 	return newVec;
 }
-void DreamMath::DreamVector3::operator*= (DreamMath::DreamMatrix3X3 m) {
+void DreamMath::DreamVector3::operator*=(DreamMath::DreamMatrix3X3 m)
+{
 	DreamMath::DreamVector3 newVec = DreamMath::DreamVector3();
 
 	newVec.x = (this->x * m.matrix.data[0][0]) + (this->y * m.matrix.data[1][0]) + (this->z * m.matrix.data[2][0]);
@@ -161,8 +164,8 @@ void DreamMath::DreamVector3::operator*= (DreamMath::DreamMatrix3X3 m) {
 	*this = newVec;
 }
 
-
-DreamMath::DreamVector4 DreamMath::DreamVector4::operator* (DreamMath::DreamMatrix4X4 m) {
+DreamMath::DreamVector4 DreamMath::DreamVector4::operator*(DreamMath::DreamMatrix4X4 m)
+{
 	DreamMath::DreamVector4 newVec = DreamMath::DreamVector4();
 
 	newVec.x = (this->x * m.matrix.data[0][0]) + (this->y * m.matrix.data[1][0]) + (this->z * m.matrix.data[2][0]) + (this->w * m.matrix.data[3][0]);
@@ -173,7 +176,8 @@ DreamMath::DreamVector4 DreamMath::DreamVector4::operator* (DreamMath::DreamMatr
 	return newVec;
 }
 
-void DreamMath::DreamVector4::operator*= (DreamMath::DreamMatrix4X4 m) {
+void DreamMath::DreamVector4::operator*=(DreamMath::DreamMatrix4X4 m)
+{
 	DreamMath::DreamVector4 newVec = DreamMath::DreamVector4();
 
 	newVec.x = (this->x * m.matrix.data[0][0]) + (this->y * m.matrix.data[1][0]) + (this->z * m.matrix.data[2][0]) + (this->w * m.matrix.data[3][0]);

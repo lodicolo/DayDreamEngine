@@ -1,3 +1,5 @@
+#ifdef WINDOWS
+
 #pragma once
 #include "DreamGraphics.h"
 
@@ -37,7 +39,7 @@ using namespace Microsoft::WRL;
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <d3d12sdklayers.h>
-//#include <DirectXMath.h>
+// #include <DirectXMath.h>
 
 #include <algorithm>
 
@@ -45,21 +47,18 @@ using namespace Microsoft::WRL;
 
 #include <chrono>
 
-
-
 inline void ThrowIfFailed(HRESULT hr)
 {
 	if (FAILED(hr))
 	{
 		throw std::exception();
 	}
-
 }
 
-
-class DreamDX12VertexArray : public DreamVertexArray {
+class DreamDX12VertexArray : public DreamVertexArray
+{
 public:
-	DreamDX12VertexArray(DreamBuffer* vert, DreamBuffer* ind = nullptr);
+	DreamDX12VertexArray(DreamBuffer *vert, DreamBuffer *ind = nullptr);
 	~DreamDX12VertexArray();
 
 	void Bind() override;
@@ -72,43 +71,43 @@ public:
 	DreamDX12Graphics();
 	~DreamDX12Graphics();
 
-	long InitWindow(int w, int h, const char* title) override;
+	long InitWindow(int w, int h, const char *title) override;
 	long InitGraphics() override;
 	void SetViewPort(int posX, int posY, int w, int h) override;
 	bool CheckWindowClose() override;
 	void ClearScreen() override;
 	void SwapBuffers() override;
 	void CheckInputs() override;
-	DreamVertexArray* GenerateVertexArray(DreamBuffer* vert, DreamBuffer* ind = nullptr);
-	DreamBuffer* GenerateBuffer(BufferType type, void* bufferData = nullptr, size_t numOfElements = 0, std::vector<size_t> strides = { 0 }, std::vector<size_t> offests = { 0 }, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
-	DreamBuffer* GenerateBuffer(BufferType type, size_t bufferSize = 0) override;
-	DreamPointer* GenerateTexture(unsigned char* pixelBuffer, int texWidth, int texHeight) override;
-	void UpdateBufferData(DreamBuffer* buffer, void* bufferData = nullptr, size_t bufSize = 0, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
-	void BindBuffer(BufferType type, DreamBuffer* buffer) override;
-	void BindTexture(DreamTexture* texture, int bindingPoint) override;
+	DreamVertexArray *GenerateVertexArray(DreamBuffer *vert, DreamBuffer *ind = nullptr);
+	DreamBuffer *GenerateBuffer(BufferType type, void *bufferData = nullptr, size_t numOfElements = 0, std::vector<size_t> strides = {0}, std::vector<size_t> offests = {0}, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
+	DreamBuffer *GenerateBuffer(BufferType type, size_t bufferSize = 0) override;
+	DreamPointer *GenerateTexture(unsigned char *pixelBuffer, int texWidth, int texHeight) override;
+	void UpdateBufferData(DreamBuffer *buffer, void *bufferData = nullptr, size_t bufSize = 0, VertexDataUsage dataUsage = VertexDataUsage::StaticDraw) override;
+	void BindBuffer(BufferType type, DreamBuffer *buffer) override;
+	void BindTexture(DreamTexture *texture, int bindingPoint) override;
 	void BeginVertexLayout() override;
 	void AddVertexLayoutData(std::string dataName, int size, unsigned int location, bool shouldNormalize, unsigned int sizeOf) override;
-	DreamPointer* FinalizeVertexLayout() override;
+	DreamPointer *FinalizeVertexLayout() override;
 	void UnBindBuffer(BufferType type) override;
-	DreamShader* LoadShader(const wchar_t* file, ShaderType shaderType) override;
-	void ReleaseShader(DreamShader* shader) override;
-	void SetShader(DreamShader* shader);
+	DreamShader *LoadShader(const wchar_t *file, ShaderType shaderType) override;
+	void ReleaseShader(DreamShader *shader) override;
+	void SetShader(DreamShader *shader);
 	void DrawWithIndex(size_t size) override;
 	void DrawWithVertex(size_t size) override;
 	void Draw() override;
 
 	void TerminateGraphics() override;
 	void DestroyWindow() override;
-	void DestroyBuffer(DreamBuffer* buffer) override;
+	void DestroyBuffer(DreamBuffer *buffer) override;
 
-	void BindVertexLayout(DreamBuffer* layout);
+	void BindVertexLayout(DreamBuffer *layout);
 	void UnBindVertexLayout();
 
 	static LRESULT CALLBACK WindowProc(
-		HWND hWnd,		// Window handle
-		UINT uMsg,		// Message
-		WPARAM wParam,	// Message's first parameter
-		LPARAM lParam	// Message's second parameter
+		HWND hWnd,	   // Window handle
+		UINT uMsg,	   // Message
+		WPARAM wParam, // Message's first parameter
+		LPARAM lParam  // Message's second parameter
 	);
 	LRESULT ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -124,22 +123,20 @@ public:
 	ComPtr<ID3D12GraphicsCommandList> CreateCommandList(ComPtr<ID3D12Device2> device, ComPtr<ID3D12CommandAllocator> commandAllocator, D3D12_COMMAND_LIST_TYPE type);
 	ComPtr<ID3D12Fence> CreateFence(ComPtr<ID3D12Device2> device);
 	HANDLE CreateEventHandle();
-	uint64_t Signal(ComPtr<ID3D12CommandQueue> commandQueue, ComPtr<ID3D12Fence> fence, uint64_t& fenceValue);
+	uint64_t Signal(ComPtr<ID3D12CommandQueue> commandQueue, ComPtr<ID3D12Fence> fence, uint64_t &fenceValue);
 	void WaitForFenceValue(ComPtr<ID3D12Fence> fence, uint64_t fenceValue, HANDLE fenceEvent, std::chrono::milliseconds duration = std::chrono::milliseconds::max());
-	void Flush(ComPtr<ID3D12CommandQueue> commandQueue, ComPtr<ID3D12Fence> fence, uint64_t& fenceValue, HANDLE fenceEvent);
+	void Flush(ComPtr<ID3D12CommandQueue> commandQueue, ComPtr<ID3D12Fence> fence, uint64_t &fenceValue, HANDLE fenceEvent);
 	void Render();
 	void SetFullscreen(bool fullscreen); // Add this graphic platorm
-	ID3D12PipelineState* CreateGraphicPipeLine(D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipeLineDesc);
-	void BindGraphicPipeLine(ID3D12PipelineState* pipeline, ID3D12RootSignature* rootSig, unsigned int heapCount = 0);
+	ID3D12PipelineState *CreateGraphicPipeLine(D3D12_GRAPHICS_PIPELINE_STATE_DESC &pipeLineDesc);
+	void BindGraphicPipeLine(ID3D12PipelineState *pipeline, ID3D12RootSignature *rootSig, unsigned int heapCount = 0);
 
 	void BindDescriptorTable(unsigned int index, unsigned int heapIndex);
 
 protected:
-	
-
 private:
-	HINSTANCE	hInst{};
-	HWND		hWnd{};
+	HINSTANCE hInst{};
+	HWND hWnd{};
 	const static uint8_t g_NumFrames = 3;
 
 	// Use WARP adapter
@@ -165,7 +162,6 @@ private:
 	UINT g_DTVDescriptorSize;
 	UINT g_CurrentBackBufferIndex;
 
-
 	// Synchronization objects
 	ComPtr<ID3D12Fence> g_Fence;
 	uint64_t g_FenceValue = 0;
@@ -183,19 +179,23 @@ private:
 	bool quit = false;
 };
 
-class DreamDX12ShaderLinker : public DreamShaderLinker {
+class DreamDX12ShaderLinker : public DreamShaderLinker
+{
 protected:
 	DreamDX12ShaderLinker();
 	~DreamDX12ShaderLinker() override;
+
 public:
-	void AttachShader(DreamShader* shader) override;
+	void AttachShader(DreamShader *shader) override;
 	void Finalize() override;
-	void BindShaderLink(UniformIndexStore& indexStore, std::unordered_map<std::string, DreamTexture*> texMap) override;
+	void BindShaderLink(UniformIndexStore &indexStore, std::unordered_map<std::string, DreamTexture *> texMap) override;
 	void UnBindShaderLink() override;
+
 private:
-	DreamDX12Graphics* dx12Graphics;
+	DreamDX12Graphics *dx12Graphics;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC pipeLineDesc;
-	ID3D12PipelineState* pipelineState;
+	ID3D12PipelineState *pipelineState;
 	friend class DreamGraphics;
 };
 
+#endif

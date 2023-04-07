@@ -4,8 +4,10 @@
 #include <unordered_map>
 #include <string>
 #include "DreamLight.h"
+#include <vector>
 
-enum ShaderType {
+enum ShaderType
+{
 	VertexShader,
 	PixelShader,
 	TessalationShader,
@@ -16,8 +18,9 @@ enum ShaderType {
 #pragma region Uniform Information
 using UniformMembers = std::unordered_map<std::string, int>;
 
-struct UniformInfo {
-	std::vector<DreamBuffer*> buffers;
+struct UniformInfo
+{
+	std::vector<DreamBuffer *> buffers;
 	int bindingIndex;
 	int uniformSize;
 	int maxIndex;
@@ -27,9 +30,8 @@ struct UniformInfo {
 	UniformInfo(int index, int size, UniformMembers members);
 
 	int AddUniformBuffer();
-	DreamBuffer* GetUniformBuffer(int index);
+	DreamBuffer *GetUniformBuffer(int index);
 };
-
 
 using UniformList = std::unordered_map<std::string, UniformInfo>;
 
@@ -37,23 +39,27 @@ using UniformIndexStore = std::unordered_map<std::string, unsigned int>;
 
 using ResourceBindingPoints = std::unordered_map<std::string, unsigned int>;
 
-struct DreamShaderResources {
+struct DreamShaderResources
+{
 	UniformList uniforms;
 	ResourceBindingPoints samplerBindings;
 
-	DreamShaderResources(){}
+	DreamShaderResources() {}
 };
 
-enum UniformBufferLayout {
+enum UniformBufferLayout
+{
 	ConstantData = 0,
 	MaterialData = 1
 };
-struct ConstantUniformData {
+struct ConstantUniformData
+{
 	DreamMath::DreamMatrix4X4 viewMat;
 	DreamMath::DreamMatrix4X4 projMat;
 	float totalTime;
 
-	UniformMembers GetMemberData() {
+	UniformMembers GetMemberData()
+	{
 		UniformMembers members;
 		members["viewMat"] = sizeof(DreamMath::DreamMatrix4X4);
 		members["projMat"] = sizeof(DreamMath::DreamMatrix4X4);
@@ -63,11 +69,13 @@ struct ConstantUniformData {
 	}
 };
 
-struct LightUniformData {
+struct LightUniformData
+{
 	DreamDirectionalLight light;
 	float ambient;
 
-	UniformMembers GetMemberData() {
+	UniformMembers GetMemberData()
+	{
 		UniformMembers members;
 		members["light"] = sizeof(DreamDirectionalLight);
 		members["ambient"] = sizeof(float);
@@ -77,10 +85,12 @@ struct LightUniformData {
 };
 #pragma endregion
 
-class DreamShader {
+class DreamShader
+{
 public:
 	DreamShader();
-	DreamShader(ShaderType t, DreamPointer ptr, DreamShaderResources resources, bool hasMat) {
+	DreamShader(ShaderType t, DreamPointer ptr, DreamShaderResources resources, bool hasMat)
+	{
 		type = t;
 		shaderPtr = ptr;
 		shaderResources = resources;
@@ -89,31 +99,34 @@ public:
 	~DreamShader();
 
 	virtual void BindShaderData();
-	DreamPointer GetShaderPtr() {
+	DreamPointer GetShaderPtr()
+	{
 		return shaderPtr;
 	}
-	ShaderType GetShaderType() {
+	ShaderType GetShaderType()
+	{
 		return type;
 	}
-	DreamPointer* GetInputLayout() {
+	DreamPointer *GetInputLayout()
+	{
 		return layout;
 	}
 
 	void CreateVertexInputLayout();
 
-	DreamShaderResources  shaderResources;
-protected:
+	DreamShaderResources shaderResources;
 
+protected:
 	ShaderType type;
 	DreamPointer shaderPtr;
 	bool hasMaterialUniform = false;
 
 private:
-	DreamPointer* layout = nullptr;
+	DreamPointer *layout = nullptr;
 };
 
-//class VertexDreamShader : public DreamShader {
-//public:
+// class VertexDreamShader : public DreamShader {
+// public:
 //	VertexDreamShader() {
 //		type = ShaderType::VertexShader;
 //	}
@@ -125,12 +138,12 @@ private:
 //	DreamBuffer* GetInputLayout() {
 //		return layout;
 //	}
-//private:
+// private:
 //	DreamBuffer* layout = nullptr;
-//};
+// };
 //
-//class PixelDreamShader : public DreamShader {
-//public:
+// class PixelDreamShader : public DreamShader {
+// public:
 //	PixelDreamShader() {
 //		type = ShaderType::PixelShader;
 //	}
@@ -138,4 +151,4 @@ private:
 //	PixelDreamShader(const wchar_t* file);
 //
 //	void BindShaderData() override;
-//};
+// };
