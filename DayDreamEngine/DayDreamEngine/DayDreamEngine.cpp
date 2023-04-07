@@ -203,9 +203,9 @@ int main()
 	objList.push_back(triangleObj);
 	objList.push_back(squareObj);
 
-	parallogramObj->transform.position = DreamVector3(0, 0, -5);
-	squareObj->transform.position = DreamVector3(3, 0, -3);
-	squareObj->transform.Rotate(DreamVector3(0, 45, 0));
+	parallogramObj->transform.position = DreamVector3{0, 0, -5};
+	squareObj->transform.position = DreamVector3{3, 0, -3};
+	squareObj->transform.Rotate(DreamVector3{0, 45, 0});
 
 	DreamCameraManager *camManager = DreamCameraManager::GetInstance();
 	DreamCamera *camera = new DreamCamera();

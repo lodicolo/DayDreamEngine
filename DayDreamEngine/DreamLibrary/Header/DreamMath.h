@@ -320,9 +320,9 @@ namespace DreamMath
 
 		static DreamVector3 lerp(DreamVector3 A, DreamVector3 B, float time)
 		{
-			return DreamVector3(((1 - time) * A.x) + (time * B.x),
+			return DreamVector3{((1 - time) * A.x) + (time * B.x),
 								((1 - time) * A.y) + (time * B.y),
-								((1 - time) * A.z) + (time * B.z));
+								((1 - time) * A.z) + (time * B.z)};
 		}
 
 #pragma region Operator OverLoads
@@ -537,10 +537,10 @@ namespace DreamMath
 
 		static DreamVector4 lerp(DreamVector4 A, DreamVector4 B, float time)
 		{
-			return DreamVector4(((1 - time) * A.x) + (time * B.x),
+			return DreamVector4{((1 - time) * A.x) + (time * B.x),
 								((1 - time) * A.y) + (time * B.y),
 								((1 - time) * A.z) + (time * B.z),
-								((1 - time) * A.w) + (time * B.w));
+								((1 - time) * A.w) + (time * B.w)};
 		}
 
 #pragma region Operator OverLoads
@@ -1473,7 +1473,7 @@ namespace DreamMath
 		{
 
 			DreamQuaternion vecToQuat = DreamQuaternion();
-			vecToQuat.qVector = DreamVector3(x, y, z).GetNormalizedVector();
+			vecToQuat.qVector = DreamVector3{x, y, z}.GetNormalizedVector();
 			vecToQuat.wScalar = 0;
 
 			DreamQuaternion finalRot = ((*this * vecToQuat) * this->GetInverse());
@@ -1502,9 +1502,9 @@ namespace DreamMath
 		static DreamQuaternion MakeQuaternionEuler(float x, float y, float z)
 		{
 
-			DreamQuaternion xQuat = DreamQuaternion(DreamVector3(1, 0, 0), x);
-			DreamQuaternion yQuat = DreamQuaternion(DreamVector3(0, 1, 0), y);
-			DreamQuaternion zQuat = DreamQuaternion(DreamVector3(0, 0, 1), z);
+			DreamQuaternion xQuat = DreamQuaternion(DreamVector3{1, 0, 0}, x);
+			DreamQuaternion yQuat = DreamQuaternion(DreamVector3{0, 1, 0}, y);
+			DreamQuaternion zQuat = DreamQuaternion(DreamVector3{0, 0, 1}, z);
 
 			DreamQuaternion finalQuat = ((zQuat * yQuat) * xQuat);
 
@@ -1515,9 +1515,9 @@ namespace DreamMath
 		static DreamQuaternion MakeQuaternionEuler(DreamVector3 rotation)
 		{
 
-			DreamQuaternion xQuat = DreamQuaternion(DreamVector3(1, 0, 0), rotation.x);
-			DreamQuaternion yQuat = DreamQuaternion(DreamVector3(0, 1, 0), rotation.y);
-			DreamQuaternion zQuat = DreamQuaternion(DreamVector3(0, 0, 1), rotation.z);
+			DreamQuaternion xQuat = DreamQuaternion(DreamVector3{1, 0, 0}, rotation.x);
+			DreamQuaternion yQuat = DreamQuaternion(DreamVector3{0, 1, 0}, rotation.y);
+			DreamQuaternion zQuat = DreamQuaternion(DreamVector3{0, 0, 1}, rotation.z);
 
 			DreamQuaternion finalQuat = ((zQuat * yQuat) * xQuat);
 
@@ -1702,7 +1702,7 @@ namespace DreamMath
 		void UpdateAxis()
 		{
 			this->forward.Normalize();
-			this->right = DreamVector3::Cross(this->forward, DreamVector3(0.0f, 1.0f, 0.0f));
+			this->right = DreamVector3::Cross(this->forward, DreamVector3{0.0f, 1.0f, 0.0f});
 			this->up = DreamVector3::Cross(this->right, this->forward);
 		}
 
@@ -1728,7 +1728,7 @@ namespace DreamMath
 		{
 
 			this->forward = newForward;
-			this->right = DreamVector3::Cross(this->forward, DreamVector3(0.0f, 1.0f, 0.0f));
+			this->right = DreamVector3::Cross(this->forward, DreamVector3{0.0f, 1.0f, 0.0f});
 			this->up = DreamVector3::Cross(this->right, this->forward);
 
 			SetRotationFromDirections();
@@ -1737,7 +1737,7 @@ namespace DreamMath
 		{
 
 			this->up = newUp;
-			this->forward = DreamVector3::Cross(this->up, DreamVector3(1.0f, 0.0f, 0.0f));
+			this->forward = DreamVector3::Cross(this->up, DreamVector3{1.0f, 0.0f, 0.0f});
 			this->right = DreamVector3::Cross(this->forward, this->up);
 
 			SetRotationFromDirections();
@@ -1746,7 +1746,7 @@ namespace DreamMath
 		{
 
 			this->right = newRight;
-			this->up = DreamVector3::Cross(this->right, DreamVector3(0.0f, 0.0f, 1.0f));
+			this->up = DreamVector3::Cross(this->right, DreamVector3{0.0f, 0.0f, 1.0f});
 			this->forward = DreamVector3::Cross(this->up, this->right);
 
 			SetRotationFromDirections();
